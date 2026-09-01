@@ -1,0 +1,43 @@
+{
+ "app": "aftersales",
+ "charts": [
+  {
+   "chart_name": "Background Job Activity",
+   "label": "Background Job Activity"
+  }
+ ],
+ "content": "[{\"id\":\"7zo7fvRZJC\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Welcome to the \u552e\u540e\u7ba1\u7406 workspace</span>\",\"col\":12}},{\"id\":\"Ib0jzbjD_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"Click on \\n\\t\\t\\t\\n\\t\\t\\t\\n\\t\\t to edit\",\"col\":12}},{\"id\":\"hDJw4b4jnI\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"5TvzkO0xVq\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Customers\",\"col\":4}},{\"id\":\"Nin-5UuFfc\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active RQ Worker\",\"col\":4}},{\"id\":\"ONj2O7vpYx\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Customers\",\"col\":4}},{\"id\":\"6TyI2C73PL\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Background Job Activity\",\"col\":12}}]",
+ "creation": "2026-08-18 13:58:29.063112",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "\u552e\u540e\u7ba1\u7406",
+ "link_type": "DocType",
+ "links": [],
+ "modified": "2026-08-25 09:36:16.454419",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "\u552e\u540e\u7ba1\u7406",
+ "number_cards": [
+  {
+   "label": "Active RQ Worker",
+   "number_card_name": "Active Customers"
+  },
+  {
+   "label": "Active Customers",
+   "number_card_name": "Active Customers"
+  }
+ ],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 0.0,
+ "shortcuts": [],
+ "title": "\u552e\u540e\u7ba1\u7406",
+ "type": "Workspace"
+}

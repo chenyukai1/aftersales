@@ -1,0 +1,14 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "aftersales"
+authors = [{name = "ZCode Demo"}]
+version = "0.0.1"
+description = "售后管理平台演示应用（整车发货 / 配件登记 / 配件主档 / 故障字典 / 查询API）"
+requires-python = ">=3.10"
+dependencies = ["frappe"]
+
+[tool.flit.module]
+name = "aftersales"

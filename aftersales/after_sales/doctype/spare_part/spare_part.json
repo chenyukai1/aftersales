@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "SP-.#####",
+ "creation": "2026-08-18 15:42:03.641316",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "k3_code",
+  "e10_code",
+  "part_name",
+  "supplier",
+  "claim_requirement"
+ ],
+ "fields": [
+  {
+   "fieldname": "k3_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "K3\u7f16\u7801",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "e10_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "E10\u54c1\u53f7"
+  },
+  {
+   "fieldname": "part_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u54c1\u540d"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u4f9b\u5e94\u5546",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "claim_requirement",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u7d22\u8d54\u9700\u6c42",
+   "options": "\u9700\u63d0\u4f9b\u65e7\u4ef6\n\u4ec5\u9700\u6e05\u5355"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-18 15:42:03.641316",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Spare Part",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "k3_code, e10_code, part_name",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

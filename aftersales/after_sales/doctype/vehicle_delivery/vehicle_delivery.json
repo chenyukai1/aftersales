@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "VD-.YYYY.-.#####",
+ "creation": "2026-08-18 15:42:02.858179",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "delivery_date",
+  "hangcha_model",
+  "serial_no",
+  "chassis_no",
+  "shibeida_model",
+  "fork_size",
+  "product_color",
+  "special_config",
+  "offline_change"
+ ],
+ "fields": [
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u53d1\u8d27\u65e5\u671f",
+   "reqd": 1
+  },
+  {
+   "fieldname": "hangcha_model",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u676d\u53c9\u578b\u53f7"
+  },
+  {
+   "fieldname": "serial_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u5e8f\u5217\u53f7",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "chassis_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8f66\u67b6\u53f7",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "shibeida_model",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u4e8b\u500d\u8fbe\u578b\u53f7"
+  },
+  {
+   "fieldname": "fork_size",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8d27\u53c9\u5c3a\u5bf8"
+  },
+  {
+   "fieldname": "product_color",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u4ea7\u54c1\u989c\u8272",
+   "options": "\u9ec4\u8272\n\u7070\u8272\n\u7ea2\u8272\n\u84dd\u8272\n\u5176\u4ed6"
+  },
+  {
+   "fieldname": "special_config",
+   "fieldtype": "Data",
+   "label": "\u7279\u6b8a\u914d\u7f6e"
+  },
+  {
+   "default": "0",
+   "fieldname": "offline_change",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "\u7ebf\u4e0b\u6539\u5355"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-18 15:42:02.858179",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Vehicle Delivery",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "chassis_no, serial_no, hangcha_model, shibeida_model",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

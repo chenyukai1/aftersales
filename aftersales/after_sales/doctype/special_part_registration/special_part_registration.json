@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "SR-.YYYY.-.#####",
+ "creation": "2026-08-18 15:42:03.319217",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "serial_no",
+  "chassis_no",
+  "vehicle_model",
+  "fork_size",
+  "order_no",
+  "tracking_status",
+  "production_date",
+  "remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "serial_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u5e8f\u5217\u53f7"
+  },
+  {
+   "fieldname": "chassis_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8f66\u67b6\u53f7"
+  },
+  {
+   "fieldname": "vehicle_model",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8f66\u578b"
+  },
+  {
+   "fieldname": "fork_size",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8d27\u53c9\u5c3a\u5bf8"
+  },
+  {
+   "fieldname": "order_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8ba2\u5355\u53f7"
+  },
+  {
+   "default": "\u5df2\u767b\u8bb0",
+   "fieldname": "tracking_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u8ddf\u8e2a\u767b\u8bb0",
+   "options": "\u5df2\u767b\u8bb0\n\u5df2\u53d1\u8d27\n\u751f\u4ea7\u4e2d\n\u5df2\u88c5\u673a\n\u5b8c\u7ed3"
+  },
+  {
+   "fieldname": "production_date",
+   "fieldtype": "Date",
+   "label": "\u751f\u4ea7\u65e5\u671f"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "\u5907\u6ce8"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-18 15:42:03.319217",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Special Part Registration",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "chassis_no, serial_no, order_no",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
