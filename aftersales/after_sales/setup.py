@@ -649,3 +649,83 @@ def sync_service_part_item_attachments():
     if added:
         dt.save(ignore_permissions=True)
         frappe.db.commit()
+
+# ---------- 角色与权限 ----------
+ROLE_AFTER_SALES = "After Sales"
+ROLE_PURCHASE = "Purchase User"
+ROLE_QUALITY = "Quality Manager"
+
+# DocType 权限矩阵：角色 → 权限级别（r=读 w=写 c=创建）
+PERMISSIONS_MATRIX = {
+    "Service Request": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Service Part Item": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Claim Order": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Claim Order Item": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Old Part Recall": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Old Part Recall Reminder": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Claim List": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "rw", ROLE_QUALITY: "r"},
+    "Claim List Item": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "rw", ROLE_QUALITY: "r"},
+    "Spare Part": {ROLE_AFTER_SALES: "rw", ROLE_PURCHASE: "rw", ROLE_QUALITY: "r"},
+    "Vehicle Delivery": {ROLE_AFTER_SALES: "rw", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Special Part Registration": {ROLE_AFTER_SALES: "rw", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "After Sales Option": {ROLE_AFTER_SALES: "rw"},
+    "Fault Category": {ROLE_AFTER_SALES: "rw", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Fault Part": {ROLE_AFTER_SALES: "rw", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Fault Phenomenon": {ROLE_AFTER_SALES: "rw", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+    "Quality Issue Closure": {ROLE_AFTER_SALES: "rw", ROLE_PURCHASE: "r", ROLE_QUALITY: "rwc"},
+    "Quality Issue Action": {ROLE_AFTER_SALES: "rwc", ROLE_PURCHASE: "r", ROLE_QUALITY: "rwc"},
+    "File": {ROLE_AFTER_SALES: "r", ROLE_PURCHASE: "r", ROLE_QUALITY: "r"},
+}
+
+
+def _perm_row(role, level):
+    """level: r=读 w=写 c=创建。注意 DocPerm 的 Check 字段默认值均为 1，必须显式置 0。"""
+    return {
+        "role": role,
+        "read": 1,
+        "write": 1 if "w" in level else 0,
+        "create": 1 if "c" in level else 0,
+        "delete": 0,
+        "submit": 0,
+        "amend": 0,
+        "cancel": 0,
+        "export": 1,
+        "print": 1,
+        "email": 1,
+        "share": 1,
+    }
+
+
+def sync_roles_and_permissions():
+    """创建售后角色并分配 DocType 权限（幂等，可重复执行）。
+
+    角色：After Sales（新建） / Purchase User（复用 ERPNext）/ Quality Manager（复用）
+    保留 System Manager 全权限，仅新增业务角色权限。
+    """
+    # 1) 创建售后角色
+    if not frappe.db.exists("Role", ROLE_AFTER_SALES):
+        frappe.get_doc(
+            {
+                "doctype": "Role",
+                "role_name": ROLE_AFTER_SALES,
+                "desk_access": 1,
+                "is_custom": 1,
+            }
+        ).insert(ignore_permissions=True)
+
+    # 2) 分配权限（先删除业务角色旧权限，再按矩阵重建，保证幂等且不残留）
+    for doctype, role_perm in PERMISSIONS_MATRIX.items():
+        if not frappe.db.exists("DocType", doctype):
+            continue
+        business_roles = list(role_perm.keys())
+        placeholders = ",".join(["%s"] * len(business_roles))
+        frappe.db.sql(
+            f"DELETE FROM `tabDocPerm` WHERE parent=%s AND role IN ({placeholders})",
+            (doctype, *business_roles),
+        )
+        dt = frappe.get_doc("DocType", doctype)
+        for role, level in role_perm.items():
+            dt.append("permissions", _perm_row(role, level))
+        dt.save(ignore_permissions=True)
+    frappe.db.commit()
+    return {"role_created": frappe.db.exists("Role", ROLE_AFTER_SALES), "doctypes": len(PERMISSIONS_MATRIX)}
