@@ -85,6 +85,19 @@ def _create_batch_alert(group, since):
         }
     )
     todo.insert(ignore_permissions=True)
+    # 系统内通知 + 企微推送（通知渠道由售后设置控制）
+    from aftersales.after_sales.notify import notify
+
+    try:
+        notify(
+            subject=f"批量隐患预警：{group['part_name']}（{group['part_code']}）",
+            message=desc,
+            doctype="Service Request",
+            name=group["service_requests"][0],
+            priority="High",
+        )
+    except Exception:
+        frappe.log_error("批量隐患通知发送失败", "after_sales.batch_issue")
     return 1
 
 

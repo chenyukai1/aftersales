@@ -555,6 +555,8 @@ def after_install():
     create_after_sales_manager_role()
     create_service_request_workflow()
     create_improvement_record()
+    create_after_sales_settings()
+    create_print_formats()
     frappe.db.commit()
 
 
@@ -820,3 +822,139 @@ def create_improvement_record():
         autoname="IMP-.YYYY.-.####",
         search_fields="part_code, part_name, fault_phenomenon",
     )
+
+
+# ---------- 售后设置（单例：仓库/通知渠道） ----------
+def create_after_sales_settings():
+    """售后设置（Single）：出库仓库、企微通知 webhook、通知开关。"""
+    if frappe.db.exists("DocType", "After Sales Settings"):
+        return None
+    doc = frappe.get_doc(
+        {
+            "doctype": "DocType",
+            "name": "After Sales Settings",
+            "module": MODULE,
+            "issingle": 1,
+            "istable": 0,
+            "fields": [
+                _field("section_outbound", "出库设置", "Section Break"),
+                _field("delivery_warehouse", "默认出库仓库", "Link", options="Warehouse", default="101 零配件仓1 - 事倍达"),
+                _field("section_notify", "通知渠道", "Section Break"),
+                _field("wecom_webhook", "企业微信 Webhook URL", "Data", help="配置后追回提醒/批量隐患/闭环通知将推送到企微群"),
+                _field("enable_inapp_notify", "系统内通知", "Check", default=1),
+                _field("enable_wecom_notify", "企业微信推送", "Check"),
+                _field("remark", "备注"),
+            ],
+            "permissions": [
+                {
+                    "role": "System Manager",
+                    "read": 1, "write": 1, "create": 1, "delete": 1,
+                    "email": 1, "print": 1, "export": 1, "report": 1, "share": 1,
+                }
+            ],
+        }
+    )
+    doc.insert(ignore_if_duplicate=True)
+    return doc
+
+
+# ---------- 打印模板 ----------
+SR_PRINT_HTML = """<div style="font-family: sans-serif; padding: 20px;">
+<h2 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 8px;">售后登记表</h2>
+<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">
+  <tr><td style="width:50%; padding:4px;"><b>服务单号：</b>{{ doc.name }}</td>
+      <td style="padding:4px;"><b>反馈日期：</b>{{ frappe.format_date(doc.feedback_date) }}</td></tr>
+  <tr><td style="padding:4px;"><b>客户简称：</b>{{ doc.customer or "" }}</td>
+      <td style="padding:4px;"><b>对接人：</b>{{ doc.contact_person or "" }}</td></tr>
+  <tr><td style="padding:4px;"><b>服务类型：</b>{{ doc.service_type or "" }}</td>
+      <td style="padding:4px;"><b>售后类型：</b>{{ doc.after_sale_type or "" }}</td></tr>
+  <tr><td style="padding:4px;"><b>OA：</b>{{ doc.oa_status or "" }}</td>
+      <td style="padding:4px;"><b>车辆铭牌：</b>{{ doc.chassis_no or "" }}</td></tr>
+  <tr><td style="padding:4px;"><b>车架号：</b>{{ doc.frame_no or "" }}</td>
+      <td style="padding:4px;"><b>出厂日期：</b>{{ frappe.format_date(doc.factory_date) }}</td></tr>
+  <tr><td colspan="2" style="padding:4px;"><b>故障现象：</b>{{ doc.fault_description or "" }}</td></tr>
+</table>
+<h3 style="border-bottom:1px solid #999; padding-bottom:4px;">配件明细</h3>
+<table style="width:100%; border-collapse: collapse;">
+  <thead><tr style="background:#eee;">
+    <th style="border:1px solid #999; padding:4px;">旧编码</th>
+    <th style="border:1px solid #999; padding:4px;">新编码</th>
+    <th style="border:1px solid #999; padding:4px;">配件名称</th>
+    <th style="border:1px solid #999; padding:4px;">数量</th>
+    <th style="border:1px solid #999; padding:4px;">索赔需求</th>
+    <th style="border:1px solid #999; padding:4px;">供应商</th>
+  </tr></thead>
+  <tbody>
+  {% for p in doc.parts %}
+    <tr>
+      <td style="border:1px solid #999; padding:4px;">{{ p.old_part_code or "" }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ p.new_part_code or "" }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ p.new_part_name or "" }}</td>
+      <td style="border:1px solid #999; padding:4px; text-align:center;">{{ (p.actual_claim_qty or p.erp_qty or 1) | int }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ p.claim_requirement or "" }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ p.fault_part_supplier or "" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div style="margin-top:24px; text-align:right;">制单人：{{ doc.owner or "" }} &nbsp;&nbsp; 日期：{{ frappe.utils.today() }}</div>
+</div>"""
+
+CL_PRINT_HTML = """<div style="font-family: sans-serif; padding: 20px;">
+<h2 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 8px;">供应商索赔清单</h2>
+<table style="width:100%; margin-bottom: 12px;">
+  <tr><td><b>索赔月份：</b>{{ doc.month }}</td>
+      <td><b>状态：</b>{{ doc.status }}</td>
+      <td><b>生成日期：</b>{{ frappe.format_date(doc.generated_on) }}</td></tr>
+  <tr><td><b>明细数：</b>{{ doc.item_count or 0 }}</td>
+      <td><b>供应商数：</b>{{ doc.supplier_count or 0 }}</td>
+      <td><b>总数量：</b>{{ doc.total_qty or 0 }}</td></tr>
+</table>
+<table style="width:100%; border-collapse: collapse;">
+  <thead><tr style="background:#eee;">
+    <th style="border:1px solid #999; padding:4px;">服务单号</th>
+    <th style="border:1px solid #999; padding:4px;">配件编码</th>
+    <th style="border:1px solid #999; padding:4px;">配件名称</th>
+    <th style="border:1px solid #999; padding:4px;">数量</th>
+    <th style="border:1px solid #999; padding:4px;">供应商</th>
+    <th style="border:1px solid #999; padding:4px;">索赔需求</th>
+    <th style="border:1px solid #999; padding:4px;">车辆铭牌</th>
+  </tr></thead>
+  <tbody>
+  {% for i in doc.items %}
+    <tr>
+      <td style="border:1px solid #999; padding:4px;">{{ i.service_request or "" }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ i.part_code or "" }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ i.part_name or "" }}</td>
+      <td style="border:1px solid #999; padding:4px; text-align:center;">{{ i.qty or 1 }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ i.supplier or "" }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ i.claim_requirement or "" }}</td>
+      <td style="border:1px solid #999; padding:4px;">{{ i.chassis_no or "" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div style="margin-top:24px; text-align:right;">制单人：{{ doc.owner or "" }} &nbsp;&nbsp; 日期：{{ frappe.utils.today() }}</div>
+</div>"""
+
+
+def create_print_formats():
+    """创建打印模板：售后登记表 + 供应商索赔清单（Frappe Print Format）。"""
+    formats = [
+        ("售后登记表", "Service Request", SR_PRINT_HTML),
+        ("供应商索赔清单", "Claim List", CL_PRINT_HTML),
+    ]
+    for fmt_name, doc_type, html in formats:
+        if frappe.db.exists("Print Format", fmt_name):
+            continue
+        frappe.get_doc(
+            {
+                "doctype": "Print Format",
+                "name": fmt_name,
+                "doc_type": doc_type,
+                "print_format_type": "Jinja",
+                "html": html,
+                "disabled": 0,
+                "align_labels_right": 0,
+            }
+        ).insert(ignore_permissions=True)

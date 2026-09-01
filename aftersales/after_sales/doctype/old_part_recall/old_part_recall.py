@@ -71,6 +71,22 @@ def run_recall_scheduler():
             doc.status = "已提醒"
             doc.save(ignore_permissions=True)
             reminded += 1
+            # 系统/企微通知（追回第 N 次提醒）
+            try:
+                from aftersales.after_sales.notify import notify
+
+                notify(
+                    subject=f"旧件追回提醒（第 {doc.remind_count} 次）：{doc.part_name or doc.part_code}",
+                    message=(
+                        f"售后单 {doc.service_request} 的坏件 {doc.part_code}（{doc.part_name or ''}）尚未寄回，"
+                        f"已发货 {doc.ship_date}，请跟进客户寄回。"
+                    ),
+                    doctype="Old Part Recall",
+                    name=doc.name,
+                    priority="High" if doc.remind_count >= 3 else "Medium",
+                )
+            except Exception:
+                frappe.log_error(f"追回提醒通知失败：{doc.name}", "after_sales.recall")
 
     frappe.db.commit()
     frappe.log_error(

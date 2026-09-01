@@ -9,9 +9,17 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import today
 
-# 默认出库仓库（零配件仓）；真实环境可在设置中调整
-DEFAULT_WAREHOUSE = "101 101零配件仓1 - 事倍达"
+# 默认出库仓库（零配件仓）；可在「售后设置 After Sales Settings」中调整
 DEFAULT_PRICE_LIST = "Standard Selling"
+
+
+def _get_warehouse():
+    """从售后设置读取默认出库仓库（未配置时回退默认）。"""
+    if frappe.db.exists("After Sales Settings"):
+        wh = frappe.get_single("After Sales Settings").get("delivery_warehouse")
+        if wh:
+            return wh
+    return "101 101零配件仓1 - 事倍达"
 
 
 class ClaimOrder(Document):
@@ -41,6 +49,7 @@ def make_delivery_note(claim_order):
         )
 
     company = frappe.db.get_single_value("Global Defaults", "default_company")
+    warehouse = _get_warehouse()
     dn = frappe.get_doc(
         {
             "doctype": "Delivery Note",
@@ -50,14 +59,14 @@ def make_delivery_note(claim_order):
             "company": company,
             "currency": frappe.db.get_value("Company", company, "default_currency") or "CNY",
             "selling_price_list": DEFAULT_PRICE_LIST,
-            "set_warehouse": DEFAULT_WAREHOUSE,
+            "set_warehouse": warehouse,
             "custom_service_request": doc.service_request,  # 服务单号进出库单（业务规范）
             "items": [
                 {
                     "item_code": i.erp_item,
                     "item_name": i.part_name,
                     "qty": i.qty or 1,
-                    "warehouse": DEFAULT_WAREHOUSE,
+                    "warehouse": warehouse,
                 }
                 for i in doc.items
             ],

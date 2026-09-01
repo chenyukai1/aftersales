@@ -20,11 +20,22 @@ class ServiceRequest(Document):
         self.calc_parts()
 
     def on_submit(self):
-        """提交后：自动创建索赔单（草稿）+ 旧件追回提醒 + 批量隐患自动发起质量闭环 + 改进-再发比对。"""
+        """提交后：自动创建索赔单（草稿）+ 旧件追回提醒 + 批量隐患自动发起质量闭环 + 改进-再发比对 + OA 状态联动。"""
         self.create_claim_order()
         self.create_recalls()
         self.trigger_quality_closure()
         self.check_recurrence()
+        self.update_oa_status()
+
+    def update_oa_status(self):
+        """审批通过（on_submit）后 OA 状态联动：特殊申请→Y（OA 流程完成）；其余→N。"""
+        try:
+            new_status = "Y" if self.service_type == "特殊申请" else "N"
+            if frappe.db.get_value("Service Request", self.name, "oa_status") != new_status:
+                frappe.db.set_value("Service Request", self.name, "oa_status", new_status)
+                frappe.db.commit()
+        except Exception:
+            frappe.log_error(f"OA 状态联动失败：{self.name}", "after_sales.oa")
 
     def check_recurrence(self):
         """改进-再发比对：命中改进记录且在改进日期后出厂 → 记录评论提醒。"""

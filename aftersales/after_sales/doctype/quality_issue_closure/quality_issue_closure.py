@@ -168,6 +168,22 @@ def create_from_service_request(service_request, classification=None):
     doc.validate()  # 触发状态机与行动项模板
     doc.save(ignore_permissions=True)
     frappe.db.commit()
+    # 通知质量部：新闭环待分析
+    try:
+        from aftersales.after_sales.notify import notify
+
+        notify(
+            subject=f"新质量闭环：{doc.issue_title or doc.name}（{classification}）",
+            message=(
+                f"售后单 {sr.name} 已触发质量闭环，定性：{classification}。"
+                f"{'批量问题，需同步启动批量处理。' if doc.is_batch_issue else ''}"
+            ),
+            doctype="Quality Issue Closure",
+            name=doc.name,
+            priority="High" if doc.is_batch_issue else "Medium",
+        )
+    except Exception:
+        frappe.log_error(f"闭环创建通知失败：{doc.name}", "after_sales.closure")
     return {"created": True, "closure": doc.name, "classification": classification}
 
 

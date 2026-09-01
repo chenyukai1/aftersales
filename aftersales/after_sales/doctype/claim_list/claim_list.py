@@ -102,6 +102,22 @@ def generate_monthly_claim_list(month=None, replace=True):
     else:
         doc.save(ignore_permissions=True)
     frappe.db.commit()
+    # 通知采购：新索赔清单待处理（同步采购系统环节，当前为系统内通知+导出）
+    try:
+        from aftersales.after_sales.notify import notify
+
+        notify(
+            subject=f"供应商索赔清单已生成：{month}",
+            message=(
+                f"「{month}」索赔清单共 {doc.item_count} 项 / {doc.supplier_count} 家供应商"
+                f"（总数量 {doc.total_qty}），请按供应商跟进索赔。"
+            ),
+            doctype="Claim List",
+            name=doc.name,
+            priority="Medium",
+        )
+    except Exception:
+        frappe.log_error(f"索赔清单通知失败：{doc.name}", "after_sales.claim_list")
     return {
         "created": creating,
         "claim_list": doc.name,

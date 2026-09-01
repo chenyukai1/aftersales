@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-01 14:35:02.716606",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_outbound",
+  "delivery_warehouse",
+  "section_notify",
+  "wecom_webhook",
+  "enable_inapp_notify",
+  "enable_wecom_notify",
+  "remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_outbound",
+   "fieldtype": "Section Break",
+   "label": "\u51fa\u5e93\u8bbe\u7f6e"
+  },
+  {
+   "default": "101 \u96f6\u914d\u4ef6\u4ed31 - \u4e8b\u500d\u8fbe",
+   "fieldname": "delivery_warehouse",
+   "fieldtype": "Link",
+   "label": "\u9ed8\u8ba4\u51fa\u5e93\u4ed3\u5e93",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "section_notify",
+   "fieldtype": "Section Break",
+   "label": "\u901a\u77e5\u6e20\u9053"
+  },
+  {
+   "fieldname": "wecom_webhook",
+   "fieldtype": "Data",
+   "label": "\u4f01\u4e1a\u5fae\u4fe1 Webhook URL"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_inapp_notify",
+   "fieldtype": "Check",
+   "label": "\u7cfb\u7edf\u5185\u901a\u77e5"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_wecom_notify",
+   "fieldtype": "Check",
+   "label": "\u4f01\u4e1a\u5fae\u4fe1\u63a8\u9001"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-09-01 14:35:02.716606",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "After Sales Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
