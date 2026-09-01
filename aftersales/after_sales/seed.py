@@ -360,6 +360,34 @@ def _seed_mock_items():
             frappe.db.set_value("Spare Part", {"k3_code": code}, "erp_item", code)
 
 
+# 演示用户（售后/采购/质量部，密码均为 demo12345）
+DEMO_USERS = [
+    ("shouhou@demo.local", "售后演示", "After Sales"),
+    ("caigou@demo.local", "采购演示", "Purchase User"),
+    ("zhiliang@demo.local", "质量演示", "Quality Manager"),
+]
+
+
+def _seed_demo_users():
+    for email, name, role in DEMO_USERS:
+        if frappe.db.exists("User", email):
+            continue
+        user = frappe.get_doc(
+            {
+                "doctype": "User",
+                "email": email,
+                "first_name": name,
+                "enabled": 1,
+                "send_welcome_email": 0,
+                "user_type": "System User",
+                "roles": [{"role": role}],
+            }
+        )
+        user.insert(ignore_permissions=True)
+        frappe.utils.password.update_password(email, "demo12345")
+        print(f"created user: {email} / {name} / {role}")
+
+
 def _ensure_api_key():
     user = frappe.get_doc("User", "Administrator")
     if not user.api_key:
@@ -382,6 +410,7 @@ def run():
     _seed_customers()
     _seed_mock_items()
     _seed_service_samples()
+    _seed_demo_users()
     _ensure_api_key()
     frappe.db.commit()
     print(
