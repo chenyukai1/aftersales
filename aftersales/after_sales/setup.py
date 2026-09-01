@@ -554,6 +554,7 @@ def after_install():
     create_quality_issue_closure()
     create_after_sales_manager_role()
     create_service_request_workflow()
+    create_improvement_record()
     frappe.db.commit()
 
 
@@ -796,3 +797,26 @@ def create_service_request_workflow():
             ],
         }
     ).insert(ignore_permissions=True, ignore_links=True)
+
+
+# ---------- 改进记录（供"改进-再发"比对） ----------
+def create_improvement_record():
+    """改进记录：维护改进日期、部件、现象、批次，供售后登记自动比对"改进-再发"。"""
+    return _make_doctype(
+        "Improvement Record",
+        [
+            _field("part_code", "配件编码", in_list_view=1),
+            _field("part_name", "配件名称", in_list_view=1),
+            _field("fault_phenomenon", "故障现象", in_list_view=1),
+            _field("improvement_date", "改进日期", "Date", reqd=1, in_list_view=1),
+            _field("improvement_desc", "改进说明", "Small Text", in_list_view=1),
+            _field("vehicle_model", "涉及车型", "Link", options="Vehicle Delivery"),
+            _field("batch_no", "涉及批次"),
+            _field("supplier", "供应商", "Link", options="Supplier"),
+            _field("change_request_no", "变更编号"),
+            _field("status", "状态", "Select", options="已改进\n验证中", default="验证中"),
+            _field("remark", "备注"),
+        ],
+        autoname="IMP-.YYYY.-.####",
+        search_fields="part_code, part_name, fault_phenomenon",
+    )

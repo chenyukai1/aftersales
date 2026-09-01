@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "IMP-.YYYY.-.####",
+ "creation": "2026-09-01 13:36:41.246526",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "part_code",
+  "part_name",
+  "fault_phenomenon",
+  "improvement_date",
+  "improvement_desc",
+  "vehicle_model",
+  "batch_no",
+  "supplier",
+  "change_request_no",
+  "status",
+  "remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "part_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u7f16\u7801"
+  },
+  {
+   "fieldname": "part_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u540d\u79f0"
+  },
+  {
+   "fieldname": "fault_phenomenon",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u6545\u969c\u73b0\u8c61"
+  },
+  {
+   "fieldname": "improvement_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u6539\u8fdb\u65e5\u671f",
+   "reqd": 1
+  },
+  {
+   "fieldname": "improvement_desc",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "\u6539\u8fdb\u8bf4\u660e"
+  },
+  {
+   "fieldname": "vehicle_model",
+   "fieldtype": "Link",
+   "label": "\u6d89\u53ca\u8f66\u578b",
+   "options": "Vehicle Delivery"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Data",
+   "label": "\u6d89\u53ca\u6279\u6b21"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "label": "\u4f9b\u5e94\u5546",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "change_request_no",
+   "fieldtype": "Data",
+   "label": "\u53d8\u66f4\u7f16\u53f7"
+  },
+  {
+   "default": "\u9a8c\u8bc1\u4e2d",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "\u72b6\u6001",
+   "options": "\u5df2\u6539\u8fdb\n\u9a8c\u8bc1\u4e2d"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 13:36:41.246526",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Improvement Record",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "part_code, part_name, fault_phenomenon",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

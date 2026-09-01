@@ -22,9 +22,11 @@ doc_events = {
 }
 
 # 旧件追回：每日检查提醒 / 超时终止
+# 批量隐患：每日扫描近7天相似故障
 scheduler_events = {
     "daily_long": [
         "aftersales.after_sales.doctype.old_part_recall.old_part_recall.run_recall_scheduler",
+        "aftersales.after_sales.batch_issue_monitor.scan_batch_issues",
     ],
     # 供应商索赔清单：每月 1 日凌晨 2 点自动生成上月清单
     "cron": {

@@ -20,10 +20,26 @@ class ServiceRequest(Document):
         self.calc_parts()
 
     def on_submit(self):
-        """提交后：自动创建索赔单（草稿）+ 旧件追回提醒 + 批量隐患自动发起质量闭环。"""
+        """提交后：自动创建索赔单（草稿）+ 旧件追回提醒 + 批量隐患自动发起质量闭环 + 改进-再发比对。"""
         self.create_claim_order()
         self.create_recalls()
         self.trigger_quality_closure()
+        self.check_recurrence()
+
+    def check_recurrence(self):
+        """改进-再发比对：命中改进记录且在改进日期后出厂 → 记录评论提醒。"""
+        from aftersales.after_sales.batch_issue_monitor import check_improvement_recurrence
+
+        try:
+            result = check_improvement_recurrence(self.name)
+            for r in result.get("recurrences", []):
+                self.add_comment(
+                    "Info",
+                    f"⚠️ 改进-再发提醒：{r['part_code']} 在 {r['improvement_date']} 已改进"
+                    f"（{r['desc'][:30]}），本次再发建议闭环定性为「改进项-再发」",
+                )
+        except Exception:
+            frappe.log_error(f"改进-再发比对失败：{self.name}", "after_sales.recurrence")
 
     def trigger_quality_closure(self):
         """售后类型=批量隐患 → 自动创建质量闭环（终稿 c 类）。"""
