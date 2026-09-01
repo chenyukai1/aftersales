@@ -1,0 +1,104 @@
+{
+ "app": "aftersales",
+ "charts": [
+  {
+   "chart_name": "Background Job Activity",
+   "label": "Background Job Activity"
+  }
+ ],
+ "content": "[{\"id\":\"7zo7fvRZJC\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Welcome to the 售后管理 workspace</span>\",\"col\":12}},{\"id\":\"Ib0jzbjD_P\",\"type\":\"paragraph\",\"data\":{\"text\":\"Click on \\n\\t\\t\\t\\n\\t\\t\\t\\n\\t\\t to edit\",\"col\":12}},{\"id\":\"hDJw4b4jnI\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"5TvzkO0xVq\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Customers\",\"col\":4}},{\"id\":\"Nin-5UuFfc\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active RQ Worker\",\"col\":4}},{\"id\":\"ONj2O7vpYx\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Customers\",\"col\":4}},{\"id\":\"6TyI2C73PL\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Background Job Activity\",\"col\":12}}]",
+ "creation": "2026-08-18 13:58:29.063112",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "售后管理",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "售后登记",
+   "link_count": 0,
+   "link_to": "Service Request",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "配件主档",
+   "link_count": 0,
+   "link_to": "Spare Part",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "整车发货",
+   "link_count": 0,
+   "link_to": "Vehicle Delivery",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "配件登记",
+   "link_count": 0,
+   "link_to": "Special Part Registration",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "售后选项（枚举维护）",
+   "link_count": 0,
+   "link_to": "After Sales Option",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "故障字典",
+   "link_count": 0,
+   "link_to": "Fault Phenomenon",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-08-25 09:36:16.454419",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "售后管理",
+ "number_cards": [
+  {
+   "label": "Active RQ Worker",
+   "number_card_name": "Active Customers"
+  },
+  {
+   "label": "Active Customers",
+   "number_card_name": "Active Customers"
+  }
+ ],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 0.0,
+ "shortcuts": [],
+ "title": "售后管理",
+ "type": "Workspace"
+}
