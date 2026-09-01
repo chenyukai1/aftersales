@@ -19,6 +19,40 @@ class ServiceRequest(Document):
         self.calc_stats()
         self.calc_parts()
 
+    def on_submit(self):
+        """提交后自动创建索赔单（草稿），无需录 ERP（erp_recorded=——）场景跳过。"""
+        if self.erp_recorded == "——":
+            return
+        parts = [p for p in self.parts if p.new_part_code]
+        if not parts:
+            return
+        if frappe.db.exists("Claim Order", {"service_request": self.name}):
+            return
+        co = frappe.get_doc(
+            {
+                "doctype": "Claim Order",
+                "service_request": self.name,
+                "customer": self.customer,
+                "claim_date": self.feedback_date,
+                "status": "草稿",
+                "items": [
+                    {
+                        "part_code": p.new_part_code,
+                        "part_name": p.new_part_name,
+                        "erp_item": frappe.db.get_value(
+                            "Spare Part", {"k3_code": p.new_part_code}, "erp_item"
+                        )
+                        or "",
+                        "qty": p.erp_qty or 1,
+                        "supplier": p.fault_part_supplier,
+                        "claim_requirement": p.claim_requirement,
+                    }
+                    for p in parts
+                ],
+            }
+        )
+        co.insert(ignore_permissions=True)
+
     # ---------- 车辆信息带出与公式 ----------
     def calc_vehicle_fields(self):
         if not self.chassis_no:

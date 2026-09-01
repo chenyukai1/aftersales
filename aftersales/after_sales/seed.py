@@ -330,6 +330,36 @@ def _seed_service_samples():
         doc.insert(ignore_permissions=True)
 
 
+def _seed_mock_items():
+    """为配件主档创建 ERP 物料（mock：item_code=k3_code），并建立 erp_item 映射。
+
+    仅处理数字开头的真实样例编码（如 31101130）；演示编码（K3-000xxx）不创建 Item。
+    is_stock_item=0：不管理库存，保证演示环境出库不因库存不足失败。
+    """
+    item_group = "Products"
+    if not frappe.db.exists("Item Group", item_group):
+        frappe.get_doc(
+            {"doctype": "Item Group", "item_group_name": item_group, "is_group": 0}
+        ).insert(ignore_permissions=True)
+    for sp in frappe.get_all("Spare Part", fields=["k3_code", "part_name"]):
+        code = (sp.k3_code or "").strip()
+        if not code or not code[0].isdigit():
+            continue
+        if not frappe.db.exists("Item", code):
+            frappe.get_doc(
+                {
+                    "doctype": "Item",
+                    "item_code": code,
+                    "item_name": sp.part_name or code,
+                    "item_group": item_group,
+                    "stock_uom": "Nos",
+                    "is_stock_item": 0,
+                }
+            ).insert(ignore_permissions=True)
+        if not frappe.db.get_value("Spare Part", {"k3_code": code}, "erp_item"):
+            frappe.db.set_value("Spare Part", {"k3_code": code}, "erp_item", code)
+
+
 def _ensure_api_key():
     user = frappe.get_doc("User", "Administrator")
     if not user.api_key:
@@ -350,11 +380,12 @@ def run():
     _seed_fault_dict()
     _seed_options()
     _seed_customers()
+    _seed_mock_items()
     _seed_service_samples()
     _ensure_api_key()
     frappe.db.commit()
     print(
-        "seed done => 供应商:%d 整车:%d 配件登记:%d 配件主档:%d 故障大类:%d 部件:%d 现象:%d 售后选项:%d 客户:%d 演示售后单:%d"
+        "seed done => 供应商:%d 整车:%d 配件登记:%d 配件主档:%d 故障大类:%d 部件:%d 现象:%d 售后选项:%d 客户:%d 演示售后单:%d 物料映射:%d"
         % (
             frappe.db.count("Supplier", {"supplier_name": ["in", SUPPLIERS]}),
             frappe.db.count("Vehicle Delivery"),
@@ -366,5 +397,6 @@ def run():
             frappe.db.count("After Sales Option"),
             frappe.db.count("Customer", {"customer_name": ["in", CUSTOMERS]}),
             frappe.db.count("Service Request"),
+            frappe.db.count("Item", {"item_code": ["like", "3110%"]}),
         )
     )

@@ -9,3 +9,10 @@ required_apps = ["frappe", "erpnext"]
 
 # 安装应用后自动创建自定义 DocType
 after_install = "aftersales.after_sales.setup.after_install"
+
+# 出库单提交后回写索赔单状态 / 售后登记 ERP录入状态
+doc_events = {
+    "Delivery Note": {
+        "on_submit": "aftersales.after_sales.doctype.claim_order.claim_order.update_delivery_note_status",
+    }
+}

@@ -1,39 +1,44 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "SP-.#####",
- "creation": "2026-08-18 15:42:03.641316",
+ "creation": "2026-09-01 09:31:19.049065",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "k3_code",
-  "e10_code",
+  "part_code",
   "part_name",
+  "erp_item",
+  "qty",
   "supplier",
-  "claim_requirement",
-  "erp_item"
+  "claim_requirement"
  ],
  "fields": [
   {
-   "fieldname": "k3_code",
+   "fieldname": "part_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "K3\u7f16\u7801",
-   "reqd": 1,
-   "unique": 1
-  },
-  {
-   "fieldname": "e10_code",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "E10\u54c1\u53f7"
+   "label": "\u914d\u4ef6\u7f16\u7801"
   },
   {
    "fieldname": "part_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "\u914d\u4ef6\u54c1\u540d"
+   "label": "\u914d\u4ef6\u540d\u79f0"
+  },
+  {
+   "fieldname": "erp_item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "ERP\u7269\u6599",
+   "options": "Item"
+  },
+  {
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u6570\u91cf"
   },
   {
    "fieldname": "supplier",
@@ -45,44 +50,24 @@
   {
    "fieldname": "claim_requirement",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "label": "\u7d22\u8d54\u9700\u6c42",
    "options": "\u9700\u63d0\u4f9b\u65e7\u4ef6\n\u4ec5\u9700\u6e05\u5355\n\u4f9b\u5e94\u5546\u9884\u8d54\u65e0\u9700\u6e05\u5355&\u8d44\u6599\n\u6bcf\u6708\u63d0\u4f9b\u552e\u540e\u6e05\u5355\n\u9700\u8d44\u6599"
-  },
-  {
-   "fieldname": "erp_item",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "ERP\u7269\u6599",
-   "options": "Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "istable": 1,
  "links": [],
- "modified": "2026-09-01 09:31:22.381260",
+ "modified": "2026-09-01 09:31:19.049065",
  "modified_by": "Administrator",
  "module": "after_sales",
- "name": "Spare Part",
- "naming_rule": "Expression",
+ "name": "Claim Order Item",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
+ "permissions": [],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
- "search_fields": "k3_code, e10_code, part_name",
+ "search_fields": "part_code, part_name",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

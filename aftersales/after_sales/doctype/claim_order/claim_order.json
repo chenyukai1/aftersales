@@ -1,0 +1,109 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "CLM-.YYYY.-.####",
+ "creation": "2026-09-01 09:31:22.094304",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_main",
+  "service_request",
+  "customer",
+  "claim_date",
+  "status",
+  "delivery_note",
+  "remark",
+  "section_items",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_main",
+   "fieldtype": "Section Break",
+   "label": "\u7d22\u8d54\u4fe1\u606f"
+  },
+  {
+   "fieldname": "service_request",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u552e\u540e\u767b\u8bb0",
+   "options": "Service Request",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u5ba2\u6237\u7b80\u79f0",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "claim_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u7d22\u8d54\u65e5\u671f",
+   "reqd": 1
+  },
+  {
+   "default": "\u8349\u7a3f",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u72b6\u6001",
+   "options": "\u8349\u7a3f\n\u5df2\u751f\u6210\u51fa\u5e93\n\u5df2\u51fa\u5e93"
+  },
+  {
+   "fieldname": "delivery_note",
+   "fieldtype": "Link",
+   "label": "\u51fa\u5e93\u5355",
+   "options": "Delivery Note"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "\u7d22\u8d54\u660e\u7ec6"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "\u7d22\u8d54\u660e\u7ec6",
+   "options": "Claim Order Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 09:31:22.094304",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Claim Order",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "service_request, customer",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

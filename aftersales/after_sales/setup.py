@@ -103,6 +103,7 @@ def create_spare_part():
                 options="需提供旧件\n仅需清单\n供应商预赔无需清单&资料\n每月提供售后清单\n需资料",
                 in_list_view=1,
             ),
+            _field("erp_item", "ERP物料", "Link", options="Item", in_list_view=1),
         ],
         autoname="SP-.#####",
         search_fields="k3_code, e10_code, part_name",
@@ -289,6 +290,64 @@ def create_service_request():
     )
 
 
+def create_claim_order_item():
+    """索赔单明细（child table）。"""
+    return _make_doctype(
+        "Claim Order Item",
+        [
+            _field("part_code", "配件编码", in_list_view=1),
+            _field("part_name", "配件名称", in_list_view=1),
+            _field("erp_item", "ERP物料", "Link", options="Item", in_list_view=1),
+            _field("qty", "数量", "Int", default=1, in_list_view=1),
+            _field("supplier", "供应商", "Link", options="Supplier", in_list_view=1),
+            _field("claim_requirement", "索赔需求", "Select", options="需提供旧件\n仅需清单\n供应商预赔无需清单&资料\n每月提供售后清单\n需资料"),
+        ],
+        istable=1,
+        search_fields="part_code, part_name",
+    )
+
+
+def create_claim_order():
+    """索赔单：由售后登记提交后自动创建，负责生成 ERP 出库单（Delivery Note）。"""
+    return _make_doctype(
+        "Claim Order",
+        [
+            _field("section_main", "索赔信息", "Section Break"),
+            _field("service_request", "售后登记", "Link", options="Service Request", reqd=1, in_list_view=1),
+            _field("customer", "客户简称", "Link", options="Customer", in_list_view=1),
+            _field("claim_date", "索赔日期", "Date", reqd=1, in_list_view=1),
+            _field(
+                "status", "状态", "Select",
+                options="草稿\n已生成出库\n已出库", default="草稿", in_list_view=1,
+            ),
+            _field("delivery_note", "出库单", "Link", options="Delivery Note"),
+            _field("remark", "备注"),
+            _field("section_items", "索赔明细", "Section Break"),
+            _field("items", "索赔明细", "Table", options="Claim Order Item"),
+        ],
+        autoname="CLM-.YYYY.-.####",
+        search_fields="service_request, customer",
+    )
+
+
+def create_dn_custom_field():
+    """Delivery Note 增加「售后服务单号」自定义字段（业务规范：服务单号必须进出库单备注栏）。"""
+    if frappe.db.exists("Custom Field", "Delivery Note-custom_service_request"):
+        return
+    frappe.get_doc(
+        {
+            "doctype": "Custom Field",
+            "dt": "Delivery Note",
+            "fieldname": "custom_service_request",
+            "label": "售后服务单号",
+            "fieldtype": "Data",
+            "insert_after": "title",
+            "read_only": 1,
+            "in_list_view": 1,
+        }
+    ).insert()
+
+
 def after_install():
     for func in (
         create_vehicle_delivery,
@@ -300,9 +359,13 @@ def after_install():
         create_after_sales_option,
         create_service_part_item,
         create_service_request,
+        create_claim_order_item,
+        create_claim_order,
     ):
         func()
     sync_dynamic_options()
+    sync_spare_part_erp_item()
+    create_dn_custom_field()
     frappe.db.commit()
 
 
@@ -359,3 +422,23 @@ def sync_dynamic_options():
         if changed:
             dt.save(ignore_permissions=True)
     frappe.db.commit()
+
+
+def sync_spare_part_erp_item():
+    """为已存在的 Spare Part DocType 补充 erp_item 字段（幂等）。"""
+    if not frappe.db.exists("DocType", "Spare Part"):
+        return
+    dt = frappe.get_doc("DocType", "Spare Part")
+    if not any(f.fieldname == "erp_item" for f in dt.fields):
+        dt.append(
+            "fields",
+            {
+                "fieldname": "erp_item",
+                "label": "ERP物料",
+                "fieldtype": "Link",
+                "options": "Item",
+                "in_list_view": 1,
+            },
+        )
+        dt.save(ignore_permissions=True)
+        frappe.db.commit()
