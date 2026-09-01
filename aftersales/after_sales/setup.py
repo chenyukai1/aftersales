@@ -552,6 +552,8 @@ def after_install():
     create_claim_list()
     create_quality_issue_action()
     create_quality_issue_closure()
+    create_after_sales_manager_role()
+    create_service_request_workflow()
     frappe.db.commit()
 
 
@@ -729,3 +731,68 @@ def sync_roles_and_permissions():
         dt.save(ignore_permissions=True)
     frappe.db.commit()
     return {"role_created": frappe.db.exists("Role", ROLE_AFTER_SALES), "doctypes": len(PERMISSIONS_MATRIX)}
+
+
+# ---------- 审批流程（售后登记一级审批，对齐业务 OA 环节） ----------
+ROLE_AFTER_SALES_MANAGER = "After Sales Manager"
+
+
+def create_after_sales_manager_role():
+    """售后主管角色（一级审批人）。"""
+    if not frappe.db.exists("Role", ROLE_AFTER_SALES_MANAGER):
+        frappe.get_doc(
+            {
+                "doctype": "Role",
+                "role_name": ROLE_AFTER_SALES_MANAGER,
+                "desk_access": 1,
+                "is_custom": 1,
+            }
+        ).insert(ignore_permissions=True)
+
+
+def create_service_request_workflow():
+    """售后登记一级审批 Workflow（幂等）。
+
+    草稿 → 提交 → 待审批 → 审批通过（docstatus=1，触发 on_submit 业务联动）/
+                           驳回 → 草稿（可修改后重新提交）
+    审批人角色：After Sales Manager（售后主管）
+    """
+    # workflow_state 字段修正（幂等）：Frappe 自动创建为 Link（按记录名校验状态名会失败），改为 Data
+    if frappe.db.get_value("Custom Field", "Service Request-workflow_state", "fieldtype") != "Data":
+        frappe.db.set_value("Custom Field", "Service Request-workflow_state", "fieldtype", "Data")
+        frappe.db.set_value("Custom Field", "Service Request-workflow_state", "options", "")
+        frappe.clear_cache(doctype="Service Request")
+        frappe.db.commit()
+    # 审批角色需要售后登记读写权限（幂等）
+    sr_dt = frappe.get_doc("DocType", "Service Request")
+    if ROLE_AFTER_SALES_MANAGER not in {p.role for p in sr_dt.permissions}:
+        sr_dt.append("permissions", _perm_row(ROLE_AFTER_SALES_MANAGER, "rw"))
+        sr_dt.save(ignore_permissions=True)
+
+    if frappe.db.exists("Workflow", "售后登记-一级审批"):
+        return
+    frappe.get_doc(
+        {
+            "doctype": "Workflow",
+            "workflow_name": "售后登记-一级审批",
+            "document_type": "Service Request",
+            "is_active": 1,
+            "workflow_state_field": "workflow_state",
+            "send_email_alert": 0,
+            "states": [
+                {"state": "草稿", "doc_status": "0", "allow_edit": "After Sales"},
+                {"state": "待审批", "doc_status": "0", "allow_edit": "After Sales Manager"},
+                {"state": "已通过", "doc_status": "1", "allow_edit": "System Manager"},
+                {"state": "已驳回", "doc_status": "0", "allow_edit": "After Sales"},
+            ],
+            "transitions": [
+                # 售后提交
+                {"state": "草稿", "action": "提交审批", "next_state": "待审批", "allowed": "After Sales", "allow_self_approval": 1},
+                # 主管审批
+                {"state": "待审批", "action": "审批通过", "next_state": "已通过", "allowed": ROLE_AFTER_SALES_MANAGER, "allow_self_approval": 1},
+                {"state": "待审批", "action": "驳回", "next_state": "已驳回", "allowed": ROLE_AFTER_SALES_MANAGER, "allow_self_approval": 1},
+                # 驳回后修改重新提交
+                {"state": "已驳回", "action": "重新提交", "next_state": "待审批", "allowed": "After Sales", "allow_self_approval": 1},
+            ],
+        }
+    ).insert(ignore_permissions=True, ignore_links=True)
