@@ -213,6 +213,10 @@ def create_service_part_item():
             _field("phone", "电话"),
             _field("address", "寄件地址", "Small Text"),
             _field("ship_region", "发货区域"),
+            # 故障资料（自动归档：售后资料/{车型}/{YYYY-MM}/{部件}）
+            _field("section_files", "故障资料（图片/视频，拖拽上传自动归档）", "Section Break"),
+            _field("fault_photo", "故障图片", "Attach Image"),
+            _field("fault_video", "故障视频", "Attach"),
         ],
         istable=1,
         search_fields="old_part_code, new_part_code, batch_no",
@@ -540,5 +544,26 @@ def sync_spare_part_erp_item():
                 "in_list_view": 1,
             },
         )
+        dt.save(ignore_permissions=True)
+        frappe.db.commit()
+
+
+def sync_service_part_item_attachments():
+    """为已存在的 Service Part Item 补充故障资料附件字段（幂等）。"""
+    if not frappe.db.exists("DocType", "Service Part Item"):
+        return
+    dt = frappe.get_doc("DocType", "Service Part Item")
+    fields = [
+        {"fieldname": "section_files", "label": "故障资料（图片/视频，拖拽上传自动归档）", "fieldtype": "Section Break"},
+        {"fieldname": "fault_photo", "label": "故障图片", "fieldtype": "Attach Image"},
+        {"fieldname": "fault_video", "label": "故障视频", "fieldtype": "Attach"},
+    ]
+    existing = {f.fieldname for f in dt.fields}
+    added = False
+    for f in fields:
+        if f["fieldname"] not in existing:
+            dt.append("fields", f)
+            added = True
+    if added:
         dt.save(ignore_permissions=True)
         frappe.db.commit()

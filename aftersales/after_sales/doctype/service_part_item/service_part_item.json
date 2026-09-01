@@ -36,7 +36,10 @@
   "recipient",
   "phone",
   "address",
-  "ship_region"
+  "ship_region",
+  "section_files",
+  "fault_photo",
+  "fault_video"
  ],
  "fields": [
   {
@@ -205,13 +208,28 @@
    "fieldname": "ship_region",
    "fieldtype": "Data",
    "label": "\u53d1\u8d27\u533a\u57df"
+  },
+  {
+   "fieldname": "section_files",
+   "fieldtype": "Section Break",
+   "label": "\u6545\u969c\u8d44\u6599\uff08\u56fe\u7247/\u89c6\u9891\uff0c\u62d6\u62fd\u4e0a\u4f20\u81ea\u52a8\u5f52\u6863\uff09"
+  },
+  {
+   "fieldname": "fault_photo",
+   "fieldtype": "Attach Image",
+   "label": "\u6545\u969c\u56fe\u7247"
+  },
+  {
+   "fieldname": "fault_video",
+   "fieldtype": "Attach",
+   "label": "\u6545\u969c\u89c6\u9891"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-01 08:47:19.013796",
+ "modified": "2026-09-01 10:32:47.003301",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Service Part Item",
