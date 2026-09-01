@@ -31,6 +31,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "质量闭环",
+   "link_count": 0,
+   "link_to": "Quality Issue Closure",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "索赔单",
    "link_count": 0,
    "link_to": "Claim Order",

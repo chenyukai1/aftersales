@@ -1,6 +1,44 @@
 frappe.ui.form.on("Service Request", {
 	refresh: function (frm) {
 		frm.trigger("update_status_help");
+		// 已提交且未创建闭环时，可人工发起质量闭环（覆盖非批量隐患场景）
+		if (frm.doc.docstatus === 1) {
+			frm.add_custom_button(__("发起质量闭环"), function () {
+				frappe.prompt(
+					[
+						{
+							label: __("问题定性"),
+							fieldname: "classification",
+							fieldtype: "Select",
+							options: [
+								"安全法规类",
+								"设计缺陷",
+								"一周内新增≥3起（批量隐患）",
+								"新故障现象",
+								"新车型验证期问题（12个月）",
+								"改进项-再发",
+							],
+							reqd: 1,
+						},
+					],
+					function (values) {
+						frm.call({
+							method: "aftersales.after_sales.doctype.quality_issue_closure.quality_issue_closure.create_from_service_request",
+							args: { service_request: frm.doc.name, classification: values.classification },
+							callback: function (r) {
+								if (r.message && r.message.created) {
+									frappe.show_alert({ message: __("质量闭环已创建：{0}", [r.message.closure]), indicator: "green" });
+								} else {
+									frappe.show_alert({ message: r.message && r.message.message, indicator: "orange" });
+								}
+							},
+						});
+					},
+					__("发起质量闭环"),
+					__("创建")
+				);
+			}).addClass("btn-primary");
+		}
 	},
 
 	chassis_no: function (frm) {

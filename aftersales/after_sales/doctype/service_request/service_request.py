@@ -20,9 +20,23 @@ class ServiceRequest(Document):
         self.calc_parts()
 
     def on_submit(self):
-        """提交后：自动创建索赔单（草稿）+ 旧件追回提醒。"""
+        """提交后：自动创建索赔单（草稿）+ 旧件追回提醒 + 批量隐患自动发起质量闭环。"""
         self.create_claim_order()
         self.create_recalls()
+        self.trigger_quality_closure()
+
+    def trigger_quality_closure(self):
+        """售后类型=批量隐患 → 自动创建质量闭环（终稿 c 类）。"""
+        if self.after_sale_type != "批量隐患":
+            return
+        from aftersales.after_sales.doctype.quality_issue_closure.quality_issue_closure import (
+            create_from_service_request,
+        )
+
+        try:
+            create_from_service_request(self.name)
+        except Exception:
+            frappe.log_error(f"自动创建质量闭环失败：{self.name}", "after_sales.closure")
 
     def create_claim_order(self):
         """无需录 ERP（erp_recorded=——）场景跳过。"""

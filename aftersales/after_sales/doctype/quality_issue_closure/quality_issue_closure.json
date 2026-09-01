@@ -1,0 +1,240 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "QC-.YYYY.-.####",
+ "creation": "2026-09-01 11:00:34.525469",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_issue",
+  "service_request",
+  "issue_title",
+  "feedback_date",
+  "chassis_no",
+  "customer",
+  "fault_part",
+  "fault_description",
+  "section_classify",
+  "issue_classification",
+  "is_batch_issue",
+  "section_whistle",
+  "whistleblower",
+  "whistle_level",
+  "whistle_action_summary",
+  "section_closure",
+  "status",
+  "root_cause",
+  "root_cause_found",
+  "has_solution",
+  "improvement_plan",
+  "review_result",
+  "review_date",
+  "8d_report",
+  "improvement_report",
+  "change_request_no",
+  "closed_date",
+  "remark",
+  "section_actions",
+  "actions"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_issue",
+   "fieldtype": "Section Break",
+   "label": "\u95ee\u9898\u4fe1\u606f"
+  },
+  {
+   "fieldname": "service_request",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u552e\u540e\u767b\u8bb0",
+   "options": "Service Request"
+  },
+  {
+   "fieldname": "issue_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u95ee\u9898\u6807\u9898"
+  },
+  {
+   "fieldname": "feedback_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u53cd\u9988\u65e5\u671f"
+  },
+  {
+   "fieldname": "chassis_no",
+   "fieldtype": "Data",
+   "label": "\u8f66\u8f86\u94ed\u724c"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "\u5ba2\u6237\u7b80\u79f0",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "fault_part",
+   "fieldtype": "Data",
+   "label": "\u6545\u969c\u90e8\u4ef6"
+  },
+  {
+   "fieldname": "fault_description",
+   "fieldtype": "Text",
+   "label": "\u6545\u969c\u63cf\u8ff0"
+  },
+  {
+   "fieldname": "section_classify",
+   "fieldtype": "Section Break",
+   "label": "\u95ee\u9898\u5b9a\u6027\u5224\u65ad"
+  },
+  {
+   "fieldname": "issue_classification",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u95ee\u9898\u5b9a\u6027",
+   "options": "\u5b89\u5168\u6cd5\u89c4\u7c7b\n\u8bbe\u8ba1\u7f3a\u9677\n\u4e00\u5468\u5185\u65b0\u589e\u22653\u8d77\uff08\u6279\u91cf\u9690\u60a3\uff09\n\u65b0\u6545\u969c\u73b0\u8c61\n\u65b0\u8f66\u578b\u9a8c\u8bc1\u671f\u95ee\u9898\uff0812\u4e2a\u6708\uff09\n\u6539\u8fdb\u9879-\u518d\u53d1\n\u4ee5\u4e0a\u5747\u4e0d\u662f"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_batch_issue",
+   "fieldtype": "Check",
+   "label": "\u6279\u91cf\u95ee\u9898\uff08b/c \u7c7b\u89e6\u53d1\u6279\u91cf\u5904\u7406\uff09"
+  },
+  {
+   "fieldname": "section_whistle",
+   "fieldtype": "Section Break",
+   "label": "\u5439\u54e8\u5206\u7ea7\u4e0e\u5904\u7406"
+  },
+  {
+   "fieldname": "whistleblower",
+   "fieldtype": "Select",
+   "label": "\u5439\u54e8\u4eba",
+   "options": "\u552e\u540e\n\u5de5\u5382"
+  },
+  {
+   "fieldname": "whistle_level",
+   "fieldtype": "Select",
+   "label": "\u5439\u54e8\u7b49\u7ea7",
+   "options": "\u7ea2\u8272\n\u6a59\u8272\n\u9ec4\u8272\n\u7eff\u8272"
+  },
+  {
+   "fieldname": "whistle_action_summary",
+   "fieldtype": "Text",
+   "label": "\u5439\u54e8\u5904\u7406\u52a8\u4f5c"
+  },
+  {
+   "fieldname": "section_closure",
+   "fieldtype": "Section Break",
+   "label": "\u95ed\u73af\u72b6\u6001"
+  },
+  {
+   "default": "\u5f85\u5b9a\u6027",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u72b6\u6001",
+   "options": "\u5f85\u5b9a\u6027\n\u5df2\u5b9a\u6027\n\u539f\u56e0\u5206\u6790\u4e2d\n\u65b9\u6848\u8bc4\u5ba1\u4e2d\n\u65b9\u6848\u843d\u5730\u4e2d\n\u5b8c\u6574\u95ed\u73af\n\u9636\u6bb5\u6027\u95ed\u73af\n\u5df2\u6401\u7f6e"
+  },
+  {
+   "fieldname": "root_cause",
+   "fieldtype": "Small Text",
+   "label": "\u771f\u56e0\u5206\u6790"
+  },
+  {
+   "fieldname": "root_cause_found",
+   "fieldtype": "Select",
+   "label": "\u662f\u5426\u627e\u5230\u771f\u56e0",
+   "options": "\u5df2\u627e\u5230\n\u672a\u627e\u5230"
+  },
+  {
+   "fieldname": "has_solution",
+   "fieldtype": "Select",
+   "label": "\u662f\u5426\u6709\u89e3\u51b3\u65b9\u6848",
+   "options": "\u6709\u65b9\u6848\n\u65e0\u65b9\u6848"
+  },
+  {
+   "fieldname": "improvement_plan",
+   "fieldtype": "Small Text",
+   "label": "\u6539\u8fdb\u65b9\u6848"
+  },
+  {
+   "fieldname": "review_result",
+   "fieldtype": "Select",
+   "label": "\u65b9\u6848\u8bc4\u5ba1\u7ed3\u679c",
+   "options": "\u901a\u8fc7\n\u4e0d\u901a\u8fc7\n\u6682\u4e0d\u542f\u7528\uff08\u6210\u672c/\u6545\u969c\u7387\u4f4e\uff09"
+  },
+  {
+   "fieldname": "review_date",
+   "fieldtype": "Date",
+   "label": "\u8bc4\u5ba1\u65e5\u671f"
+  },
+  {
+   "fieldname": "8d_report",
+   "fieldtype": "Attach",
+   "label": "8D \u62a5\u544a"
+  },
+  {
+   "fieldname": "improvement_report",
+   "fieldtype": "Attach",
+   "label": "\u6539\u8fdb\u62a5\u544a\uff08\u5bf9\u5916\u7248\uff09"
+  },
+  {
+   "fieldname": "change_request_no",
+   "fieldtype": "Data",
+   "label": "\u53d8\u66f4\u7f16\u53f7\uff08\u7814\u53d1\uff09"
+  },
+  {
+   "fieldname": "closed_date",
+   "fieldtype": "Date",
+   "label": "\u95ed\u73af\u65e5\u671f"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  },
+  {
+   "fieldname": "section_actions",
+   "fieldtype": "Section Break",
+   "label": "\u884c\u52a8\u9879\uff08\u5439\u54e8\u5904\u7406/\u6279\u91cf\u5904\u7406/\u843d\u5730\u6b65\u9aa4\uff09"
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "\u884c\u52a8\u9879",
+   "options": "Quality Issue Action"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 11:00:34.525469",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Quality Issue Closure",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "issue_title, service_request, chassis_no",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

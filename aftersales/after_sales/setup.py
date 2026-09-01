@@ -365,6 +365,86 @@ def create_old_part_recall_reminder():
     )
 
 
+def create_quality_issue_action():
+    """质量闭环行动项（child table）：吹哨处理 / 批量处理 / 落地步骤。"""
+    return _make_doctype(
+        "Quality Issue Action",
+        [
+            _field("action_type", "行动类型", "Select", options="吹哨处理\n批量处理\n落地步骤", in_list_view=1),
+            _field("description", "行动内容", reqd=1, in_list_view=1),
+            _field("owner_department", "责任部门", in_list_view=1),
+            _field("owner_person", "责任人"),
+            _field(
+                "status", "状态", "Select",
+                options="未开始\n进行中\n已完成", default="未开始", in_list_view=1,
+            ),
+            _field("due_date", "截止日期", "Date"),
+        ],
+        istable=1,
+    )
+
+
+def create_quality_issue_closure():
+    """质量问题闭环（终稿流程图 2026-08-27）：定性判断 → 吹哨分级 → 批量处理 → 原因分析 → 方案评审 → 方案落地。"""
+    return _make_doctype(
+        "Quality Issue Closure",
+        [
+            # 问题信息
+            _field("section_issue", "问题信息", "Section Break"),
+            _field("service_request", "售后登记", "Link", options="Service Request", in_list_view=1),
+            _field("issue_title", "问题标题", in_list_view=1),
+            _field("feedback_date", "反馈日期", "Date", in_list_view=1),
+            _field("chassis_no", "车辆铭牌"),
+            _field("customer", "客户简称", "Link", options="Customer"),
+            _field("fault_part", "故障部件"),
+            _field("fault_description", "故障描述", "Text"),
+            # 问题定性（终稿 1 阶段）
+            _field("section_classify", "问题定性判断", "Section Break"),
+            _field(
+                "issue_classification", "问题定性", "Select",
+                options="安全法规类\n设计缺陷\n一周内新增≥3起（批量隐患）\n新故障现象\n新车型验证期问题（12个月）\n改进项-再发\n以上均不是",
+                in_list_view=1,
+            ),
+            _field("is_batch_issue", "批量问题（b/c 类触发批量处理）", "Check"),
+            # 吹哨分级（终稿 2 阶段）
+            _field("section_whistle", "吹哨分级与处理", "Section Break"),
+            _field("whistleblower", "吹哨人", "Select", options="售后\n工厂"),
+            _field(
+                "whistle_level", "吹哨等级", "Select",
+                options="红色\n橙色\n黄色\n绿色",
+                help="红色→黄色→绿色，重要紧急程度依次降低",
+            ),
+            _field("whistle_action_summary", "吹哨处理动作", "Text"),
+            # 闭环状态与原因分析（终稿 4 阶段）
+            _field("section_closure", "闭环状态", "Section Break"),
+            _field(
+                "status", "状态", "Select",
+                options="待定性\n已定性\n原因分析中\n方案评审中\n方案落地中\n完整闭环\n阶段性闭环\n已搁置",
+                default="待定性", in_list_view=1,
+            ),
+            _field("root_cause", "真因分析", "Small Text"),
+            _field("root_cause_found", "是否找到真因", "Select", options="已找到\n未找到"),
+            _field("has_solution", "是否有解决方案", "Select", options="有方案\n无方案"),
+            _field("improvement_plan", "改进方案", "Small Text"),
+            _field(
+                "review_result", "方案评审结果", "Select",
+                options="通过\n不通过\n暂不启用（成本/故障率低）",
+            ),
+            _field("review_date", "评审日期", "Date"),
+            _field("8d_report", "8D 报告", "Attach"),
+            _field("improvement_report", "改进报告（对外版）", "Attach"),
+            _field("change_request_no", "变更编号（研发）"),
+            _field("closed_date", "闭环日期", "Date"),
+            _field("remark", "备注"),
+            # 行动项（吹哨/批量/落地）
+            _field("section_actions", "行动项（吹哨处理/批量处理/落地步骤）", "Section Break"),
+            _field("actions", "行动项", "Table", options="Quality Issue Action"),
+        ],
+        autoname="QC-.YYYY.-.####",
+        search_fields="issue_title, service_request, chassis_no",
+    )
+
+
 def create_claim_list_item():
     """索赔清单明细（child table）。"""
     return _make_doctype(
@@ -470,6 +550,8 @@ def after_install():
     create_old_part_recall()
     create_claim_list_item()
     create_claim_list()
+    create_quality_issue_action()
+    create_quality_issue_closure()
     frappe.db.commit()
 
 

@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-01 11:00:31.450251",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "action_type",
+  "description",
+  "owner_department",
+  "owner_person",
+  "status",
+  "due_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "action_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u884c\u52a8\u7c7b\u578b",
+   "options": "\u5439\u54e8\u5904\u7406\n\u6279\u91cf\u5904\u7406\n\u843d\u5730\u6b65\u9aa4"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u884c\u52a8\u5185\u5bb9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "owner_department",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8d23\u4efb\u90e8\u95e8"
+  },
+  {
+   "fieldname": "owner_person",
+   "fieldtype": "Data",
+   "label": "\u8d23\u4efb\u4eba"
+  },
+  {
+   "default": "\u672a\u5f00\u59cb",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u72b6\u6001",
+   "options": "\u672a\u5f00\u59cb\n\u8fdb\u884c\u4e2d\n\u5df2\u5b8c\u6210"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "\u622a\u6b62\u65e5\u671f"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-01 11:00:31.450251",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Quality Issue Action",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
