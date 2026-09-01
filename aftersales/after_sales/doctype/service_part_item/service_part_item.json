@@ -1,0 +1,228 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-01 08:42:34.567326",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_fault",
+  "batch_no",
+  "usage_duration",
+  "old_part_code",
+  "old_part_name",
+  "fault_part_supplier",
+  "claim_requirement",
+  "need_return",
+  "section_new_part",
+  "new_part_code",
+  "new_part_name",
+  "erp_qty",
+  "gift_qty",
+  "actual_claim_qty",
+  "erp_new_code",
+  "section_recall",
+  "return_focus",
+  "bad_part_arrived",
+  "returned_to_factory",
+  "return_remark",
+  "factory_claim_date",
+  "supplier_claim_date",
+  "unclaimed_remark",
+  "section_ship",
+  "ship_date",
+  "ship_method",
+  "tracking_no",
+  "recipient",
+  "phone",
+  "address",
+  "ship_region"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_fault",
+   "fieldtype": "Section Break",
+   "label": "\u6545\u969c\u90e8\u4ef6"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Data",
+   "label": "\u574f\u4ef6\u6279\u6b21\u53f7"
+  },
+  {
+   "fieldname": "usage_duration",
+   "fieldtype": "Data",
+   "label": "\u4f7f\u7528\u65f6\u957f"
+  },
+  {
+   "fieldname": "old_part_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8001\u914d\u4ef6\u7f16\u7801"
+  },
+  {
+   "fieldname": "old_part_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8001\u914d\u4ef6\u540d\u79f0"
+  },
+  {
+   "fieldname": "fault_part_supplier",
+   "fieldtype": "Link",
+   "label": "\u6545\u969c\u90e8\u4ef6\u4f9b\u5e94\u5546",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "claim_requirement",
+   "fieldtype": "Select",
+   "label": "\u7d22\u8d54\u9700\u6c42",
+   "options": "\u9700\u63d0\u4f9b\u65e7\u4ef6\n\u4ec5\u9700\u6e05\u5355\n\u4f9b\u5e94\u5546\u9884\u8d54\u65e0\u9700\u6e05\u5355&\u8d44\u6599\n\u6bcf\u6708\u63d0\u4f9b\u552e\u540e\u6e05\u5355\n\u9700\u8d44\u6599"
+  },
+  {
+   "fieldname": "need_return",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u574f\u4ef6\u9700\u8981\u5bc4\u56de",
+   "options": "\u662f\n\u5426"
+  },
+  {
+   "fieldname": "section_new_part",
+   "fieldtype": "Section Break",
+   "label": "\u4e09\u5305\u65b0\u4ef6"
+  },
+  {
+   "fieldname": "new_part_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u65b0\u914d\u4ef6\u7f16\u7801"
+  },
+  {
+   "fieldname": "new_part_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u65b0\u914d\u4ef6\u540d\u79f0"
+  },
+  {
+   "fieldname": "erp_qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "ERP\u53d1\u8d27\u6570\u91cf"
+  },
+  {
+   "fieldname": "gift_qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u672c\u5355\u8d60\u9001\u6570\u91cf"
+  },
+  {
+   "fieldname": "actual_claim_qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u672c\u5355\u5b9e\u9645\u7d22\u8d54\u6570\u91cf"
+  },
+  {
+   "fieldname": "erp_new_code",
+   "fieldtype": "Data",
+   "label": "\u65b0\u914d\u4ef6\u7f16\u7801\u5f55ERP"
+  },
+  {
+   "fieldname": "section_recall",
+   "fieldtype": "Section Break",
+   "label": "\u574f\u4ef6\u8ffd\u56de"
+  },
+  {
+   "fieldname": "return_focus",
+   "fieldtype": "Data",
+   "label": "\u574f\u4ef6\u9700\u8981\u91cd\u70b9\u5173\u6ce8"
+  },
+  {
+   "fieldname": "bad_part_arrived",
+   "fieldtype": "Date",
+   "label": "\u574f\u4ef6\u5230\u8d27\u65e5\u671f"
+  },
+  {
+   "fieldname": "returned_to_factory",
+   "fieldtype": "Date",
+   "label": "\u9000\u56de\u5de5\u5382\u65e5\u671f"
+  },
+  {
+   "fieldname": "return_remark",
+   "fieldtype": "Small Text",
+   "label": "\u574f\u4ef6\u9000\u56de\u5907\u6ce8"
+  },
+  {
+   "fieldname": "factory_claim_date",
+   "fieldtype": "Date",
+   "label": "\u5411\u5de5\u5382\u7d22\u8d54\u65e5\u671f"
+  },
+  {
+   "fieldname": "supplier_claim_date",
+   "fieldtype": "Date",
+   "label": "\u5de5\u5382\u5df2\u5411\u4f9b\u5e94\u5546\u7d22\u8d54\u65e5\u671f"
+  },
+  {
+   "fieldname": "unclaimed_remark",
+   "fieldtype": "Small Text",
+   "label": "\u672a\u8d54\u5907\u6ce8"
+  },
+  {
+   "fieldname": "section_ship",
+   "fieldtype": "Section Break",
+   "label": "\u53d1\u8d27\u4fe1\u606f"
+  },
+  {
+   "fieldname": "ship_date",
+   "fieldtype": "Date",
+   "label": "\u53d1\u8d27\u65e5\u671f"
+  },
+  {
+   "fieldname": "ship_method",
+   "fieldtype": "Select",
+   "label": "\u53d1\u8d27\u65b9\u5f0f",
+   "options": "\u987a\u4e30\u5bc4\u4ed8\n\u987a\u4e30\u5230\u4ed8\n\u4e2d\u901a\n\u5706\u901a\n\u97f5\u8fbe\n\u5fb7\u90a6\n\u968f\u8f66"
+  },
+  {
+   "fieldname": "tracking_no",
+   "fieldtype": "Data",
+   "label": "\u5feb\u9012/\u7269\u6d41/\u968f\u8f66\u5355\u53f7"
+  },
+  {
+   "fieldname": "recipient",
+   "fieldtype": "Data",
+   "label": "\u6536\u4ef6\u4eba"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "\u7535\u8bdd"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "\u5bc4\u4ef6\u5730\u5740"
+  },
+  {
+   "fieldname": "ship_region",
+   "fieldtype": "Data",
+   "label": "\u53d1\u8d27\u533a\u57df"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-01 08:47:19.013796",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Service Part Item",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "old_part_code, new_part_code, batch_no",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

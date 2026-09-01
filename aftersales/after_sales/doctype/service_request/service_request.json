@@ -1,0 +1,231 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "service.YYYY.MM.####",
+ "creation": "2026-09-01 08:43:13.130425",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_service",
+  "feedback_date",
+  "oa_status",
+  "erp_recorded",
+  "customer",
+  "contact_person",
+  "service_type",
+  "fault_description",
+  "handling_action",
+  "after_sale_type",
+  "section_parts",
+  "parts",
+  "section_vehicle",
+  "chassis_no",
+  "vehicle_model",
+  "special_part_tracking",
+  "exception_reason",
+  "special_config",
+  "manufacture_date",
+  "days_since_manufacture",
+  "after_sale_band",
+  "section_stats",
+  "customer_status",
+  "department_status",
+  "claim_month",
+  "claim_week",
+  "manufacture_month",
+  "customer_callback"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_service",
+   "fieldtype": "Section Break",
+   "label": "\u670d\u52a1\u5185\u5bb9"
+  },
+  {
+   "fieldname": "feedback_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u53cd\u9988\u65e5\u671f",
+   "reqd": 1
+  },
+  {
+   "fieldname": "oa_status",
+   "fieldtype": "Select",
+   "label": "OA",
+   "options": "N\nY\n\u64a4\u9500"
+  },
+  {
+   "fieldname": "erp_recorded",
+   "fieldtype": "Select",
+   "label": "ERP\u5f55\u5165",
+   "options": "OK\n\u2014\u2014\n\u770b\u8be6\u60c5"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u5ba2\u6237\u7b80\u79f0",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u5bf9\u63a5\u4eba"
+  },
+  {
+   "fieldname": "service_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u670d\u52a1\u7c7b\u578b",
+   "options": "\u666e\u901a\u7d22\u8d54\n\u7279\u6b8a\u7533\u8bf7\n\u9644\u5e26\u7d22\u8d54",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fault_description",
+   "fieldtype": "Text Editor",
+   "label": "\u6545\u969c\u63cf\u8ff0\uff08\u5168\u8fc7\u7a0b\u8ddf\u8e2a\uff09"
+  },
+  {
+   "fieldname": "handling_action",
+   "fieldtype": "Select",
+   "label": "\u5904\u7406\u63aa\u65bd",
+   "options": "\u7d22\u8d54\u914d\u4ef6\n\u8d54\u94b1\n\u8d60\u9001"
+  },
+  {
+   "fieldname": "after_sale_type",
+   "fieldtype": "Select",
+   "label": "\u552e\u540e\u7c7b\u578b",
+   "options": "\u5df2\u6539\u5584\u9879\n\u5f85\u6539\u8fdb\u9879\n\u6279\u91cf\u9690\u60a3\n\u4eba\u4e3a\u56e0\u7d20"
+  },
+  {
+   "fieldname": "section_parts",
+   "fieldtype": "Section Break",
+   "label": "\u6545\u969c\u90e8\u4ef6 / \u4e09\u5305\u65b0\u4ef6 / \u53d1\u8d27"
+  },
+  {
+   "fieldname": "parts",
+   "fieldtype": "Table",
+   "label": "\u914d\u4ef6\u660e\u7ec6",
+   "options": "Service Part Item"
+  },
+  {
+   "fieldname": "section_vehicle",
+   "fieldtype": "Section Break",
+   "label": "\u8f66\u8f86\u4fe1\u606f"
+  },
+  {
+   "fieldname": "chassis_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8f66\u8f86\u94ed\u724c",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vehicle_model",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8f66\u578b"
+  },
+  {
+   "fieldname": "special_part_tracking",
+   "fieldtype": "Data",
+   "label": "\u7279\u6b8a\u914d\u4ef6\u8ddf\u8e2a"
+  },
+  {
+   "fieldname": "exception_reason",
+   "fieldtype": "Small Text",
+   "label": "\u5f02\u5e38\u552e\u540e\u5fc5\u586b\u9879\uff08\u4f7f\u7528\u73af\u5883/\u8fd0\u8f93\u8d27\u54c1\u7b49\uff09"
+  },
+  {
+   "fieldname": "special_config",
+   "fieldtype": "Data",
+   "label": "\u8f66\u8f86\u4e0b\u5355\u65f6\u7684\u7279\u6b8a\u914d\u7f6e"
+  },
+  {
+   "fieldname": "manufacture_date",
+   "fieldtype": "Date",
+   "label": "\u51fa\u5382\u65e5\u671f"
+  },
+  {
+   "fieldname": "days_since_manufacture",
+   "fieldtype": "Int",
+   "label": "\u51fa\u5382\u5929\u6570"
+  },
+  {
+   "fieldname": "after_sale_band",
+   "fieldtype": "Select",
+   "label": "\u552e\u540e\u6ce2\u6bb5",
+   "options": "A\nB\nC"
+  },
+  {
+   "fieldname": "section_stats",
+   "fieldtype": "Section Break",
+   "label": "\u7edf\u8ba1 / \u72b6\u6001"
+  },
+  {
+   "fieldname": "customer_status",
+   "fieldtype": "Select",
+   "label": "\u72b6\u6001\uff08\u5ba2\u6237\uff09",
+   "options": "\u5df2\u63a5\u5355\n\u5df2\u53d1\u8d27\n\u5b8c\u6210"
+  },
+  {
+   "fieldname": "department_status",
+   "fieldtype": "Select",
+   "label": "\u72b6\u6001\uff08\u90e8\u95e8\uff09",
+   "options": "\u7d22\u8d54\u4ef6\u5df2\u53d1\n\u574f\u4ef6\u5df2\u9000\u56de\n\u5b8c\u6210"
+  },
+  {
+   "fieldname": "claim_month",
+   "fieldtype": "Data",
+   "label": "\u7d22\u8d54\u6708\u4efd"
+  },
+  {
+   "fieldname": "claim_week",
+   "fieldtype": "Data",
+   "label": "\u7d22\u8d54\u5468\u6570"
+  },
+  {
+   "fieldname": "manufacture_month",
+   "fieldtype": "Data",
+   "label": "\u51fa\u5382\u6708\u4efd"
+  },
+  {
+   "fieldname": "customer_callback",
+   "fieldtype": "Select",
+   "label": "\u5ba2\u6237\u56de\u8bbf",
+   "options": "\u5f85\u56de\u8bbf\n\u5df2\u56de\u8bbf"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 08:47:13.642151",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Service Request",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "chassis_no, customer, feedback_date",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

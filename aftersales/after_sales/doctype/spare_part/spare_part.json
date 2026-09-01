@@ -46,13 +46,13 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "\u7d22\u8d54\u9700\u6c42",
-   "options": "\u9700\u63d0\u4f9b\u65e7\u4ef6\n\u4ec5\u9700\u6e05\u5355"
+   "options": "\u9700\u63d0\u4f9b\u65e7\u4ef6\n\u4ec5\u9700\u6e05\u5355\n\u4f9b\u5e94\u5546\u9884\u8d54\u65e0\u9700\u6e05\u5355&\u8d44\u6599\n\u6bcf\u6708\u63d0\u4f9b\u552e\u540e\u6e05\u5355\n\u9700\u8d44\u6599"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-18 15:42:03.641316",
+ "modified": "2026-09-01 08:47:19.264133",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Spare Part",

@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "ASO-.#####",
+ "creation": "2026-09-01 08:42:28.957655",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "option_type",
+  "option_value",
+  "sort_order",
+  "is_active"
+ ],
+ "fields": [
+  {
+   "fieldname": "option_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u9009\u9879\u7c7b\u522b",
+   "options": "\u670d\u52a1\u7c7b\u578b\n\u552e\u540e\u7c7b\u578b\n\u5904\u7406\u63aa\u65bd\nERP\u5f55\u5165\nOA\u72b6\u6001\n\u574f\u4ef6\u5bc4\u56de\n\u72b6\u6001\u5ba2\u6237\n\u72b6\u6001\u90e8\u95e8\n\u53d1\u8d27\u65b9\u5f0f\n\u7d22\u8d54\u9700\u6c42\n\u5ba2\u6237\u56de\u8bbf\n\u552e\u540e\u6ce2\u6bb5",
+   "reqd": 1
+  },
+  {
+   "fieldname": "option_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u9009\u9879\u503c",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u6392\u5e8f"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "\u542f\u7528"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 08:42:28.957655",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "After Sales Option",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "option_type, option_value",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "option_value",
+ "track_changes": 1
+}

@@ -18,6 +18,8 @@ SUPPLIERS = [
     "无锡智能电控",
     "宁波灯具制造",
     "杭州制动器厂",
+    "江苏威博",
+    "华昌液压",
 ]
 
 VEHICLES = [
@@ -57,6 +59,37 @@ SPARE_PARTS = [
     ("K3-000108", "45.310.0108", "液压泵总成", "安徽合叉液压有限公司", "需提供旧件"),
     ("K3-000109", "45.510.0109", "警示灯组件", "宁波灯具制造", "仅需清单"),
     ("K3-000110", "45.410.0110", "制动器总成", "杭州制动器厂", "需提供旧件"),
+    # 真实业务样例（来自 2026-01-04 售后日志）
+    ("31101166", "31.101.0166", "PU双轮 80*70mm 带轴承 (REACH认证)", "江苏威博", "供应商预赔无需清单&资料"),
+    ("31101130", "31.101.0130", "液压站总成 (VIBO) 2.0T", "江苏威博", "每月提供售后清单"),
+    ("31501014", "31.501.0014", "00842 油缸总成 (活塞杆直径Ø35)", "华昌液压", "需资料"),
+    ("31201128", "31.201.0128", "承重轮组件", "江苏威博", "需提供旧件"),
+    ("31502033", "31.502.0033", "液压站总成 (VIBO) 3.0T", "江苏威博", "每月提供售后清单"),
+]
+
+# 售后选项默认值（下拉字段选项源，用户可在后台「售后选项」中自行增删）
+AFTER_SALES_OPTIONS = [
+    # (选项类别, 选项值, 排序)
+    ("服务类型", "普通索赔", 1), ("服务类型", "特殊申请", 2), ("服务类型", "附带索赔", 3),
+    ("售后类型", "已改善项", 1), ("售后类型", "待改进项", 2), ("售后类型", "批量隐患", 3), ("售后类型", "人为因素", 4),
+    ("处理措施", "索赔配件", 1), ("处理措施", "赔钱", 2), ("处理措施", "赠送", 3),
+    ("ERP录入", "OK", 1), ("ERP录入", "——", 2), ("ERP录入", "看详情", 3),
+    ("OA状态", "N", 1), ("OA状态", "Y", 2), ("OA状态", "撤销", 3),
+    ("坏件寄回", "是", 1), ("坏件寄回", "否", 2),
+    ("状态客户", "已接单", 1), ("状态客户", "已发货", 2), ("状态客户", "完成", 3),
+    ("状态部门", "索赔件已发", 1), ("状态部门", "坏件已退回", 2), ("状态部门", "完成", 3),
+    ("发货方式", "顺丰寄付", 1), ("发货方式", "顺丰到付", 2), ("发货方式", "中通", 3),
+    ("发货方式", "圆通", 4), ("发货方式", "韵达", 5), ("发货方式", "德邦", 6), ("发货方式", "随车", 7),
+    ("索赔需求", "需提供旧件", 1), ("索赔需求", "仅需清单", 2), ("索赔需求", "供应商预赔无需清单&资料", 3),
+    ("索赔需求", "每月提供售后清单", 4), ("索赔需求", "需资料", 5),
+    ("客户回访", "待回访", 1), ("客户回访", "已回访", 2),
+    ("售后波段", "A", 1), ("售后波段", "B", 2), ("售后波段", "C", 3),
+]
+
+CUSTOMERS = [
+    "零星客户",
+    "吉安吉翔/江西雷翼",
+    "杭州杭叉电子商务有限公司",
 ]
 
 FAULT_DICT = [
@@ -187,6 +220,116 @@ def _seed_fault_dict():
                 ).insert(ignore_permissions=True)
 
 
+def _seed_options():
+    for otype, ovalue, sort in AFTER_SALES_OPTIONS:
+        if frappe.db.exists("After Sales Option", {"option_type": otype, "option_value": ovalue}):
+            continue
+        frappe.get_doc(
+            {
+                "doctype": "After Sales Option",
+                "option_type": otype,
+                "option_value": ovalue,
+                "sort_order": sort,
+                "is_active": 1,
+            }
+        ).insert(ignore_permissions=True)
+
+
+def _seed_customers():
+    group_name = "售后客户"
+    if not frappe.db.exists("Customer Group", group_name):
+        frappe.get_doc(
+            {
+                "doctype": "Customer Group",
+                "customer_group_name": group_name,
+                "is_group": 0,
+            }
+        ).insert(ignore_permissions=True)
+    for name in CUSTOMERS:
+        if not frappe.db.exists("Customer", {"customer_name": name}):
+            frappe.get_doc(
+                {
+                    "doctype": "Customer",
+                    "customer_name": name,
+                    "customer_group": group_name,
+                    "territory": "All Territories",
+                }
+            ).insert(ignore_permissions=True)
+
+
+# 演示售后单（对齐 2026-01-04 真实样例结构）
+SERVICE_SAMPLES = [
+    {
+        "feedback_date": "2026-09-01",
+        "customer": "零星客户",
+        "contact_person": "大程",
+        "service_type": "特殊申请",
+        "handling_action": "赠送",
+        "after_sale_type": "人为因素",
+        "fault_description": "特殊申请赠送一个PU轮，新车轮子失圆",
+        "chassis_no": "HC-2026-0115-001",
+        "parts": [
+            {
+                "old_part_code": "31101166",
+                "new_part_code": "31101166",
+                "erp_qty": 1,
+                "gift_qty": 0,
+                "need_return": "否",
+                "ship_method": "顺丰寄付",
+                "tracking_no": "SF1564365977181",
+                "recipient": "叶根财",
+            }
+        ],
+    },
+    {
+        "feedback_date": "2026-09-01",
+        "customer": "吉安吉翔/江西雷翼",
+        "contact_person": "大程",
+        "service_type": "普通索赔",
+        "after_sale_type": "已改善项",
+        "fault_description": "油缸耐磨环脱落，堵住下降电磁阀，导致车子无法起升，更换液压站+油缸",
+        "chassis_no": "HC-2026-0203-002",
+        "parts": [
+            {
+                "old_part_code": "31101130",
+                "new_part_code": "31101130",
+                "erp_qty": 1,
+                "gift_qty": 0,
+                "need_return": "是",
+                "recipient": "刘清华",
+            },
+            {
+                "old_part_code": "31501014",
+                "new_part_code": "31501014",
+                "erp_qty": 1,
+                "gift_qty": 0,
+                "need_return": "是",
+                "recipient": "刘清华",
+            },
+        ],
+    },
+]
+
+
+def _seed_service_samples():
+    for row in SERVICE_SAMPLES:
+        doc = frappe.get_doc(
+            {
+                "doctype": "Service Request",
+                "feedback_date": row["feedback_date"],
+                "customer": row["customer"],
+                "contact_person": row.get("contact_person", ""),
+                "service_type": row["service_type"],
+                "handling_action": row.get("handling_action", ""),
+                "after_sale_type": row.get("after_sale_type", ""),
+                "fault_description": row.get("fault_description", ""),
+                "chassis_no": row["chassis_no"],
+                "parts": row["parts"],
+            }
+        )
+        doc.insert(ignore_permissions=True)
+
+
 def _ensure_api_key():
     user = frappe.get_doc("User", "Administrator")
     if not user.api_key:
@@ -205,10 +348,13 @@ def run():
     _seed_parts_reg()
     _seed_spare_parts()
     _seed_fault_dict()
+    _seed_options()
+    _seed_customers()
+    _seed_service_samples()
     _ensure_api_key()
     frappe.db.commit()
     print(
-        "seed done => 供应商:%d 整车:%d 配件登记:%d 配件主档:%d 故障大类:%d 部件:%d 现象:%d"
+        "seed done => 供应商:%d 整车:%d 配件登记:%d 配件主档:%d 故障大类:%d 部件:%d 现象:%d 售后选项:%d 客户:%d 演示售后单:%d"
         % (
             frappe.db.count("Supplier", {"supplier_name": ["in", SUPPLIERS]}),
             frappe.db.count("Vehicle Delivery"),
@@ -217,5 +363,8 @@ def run():
             frappe.db.count("Fault Category"),
             frappe.db.count("Fault Part"),
             frappe.db.count("Fault Phenomenon"),
+            frappe.db.count("After Sales Option"),
+            frappe.db.count("Customer", {"customer_name": ["in", CUSTOMERS]}),
+            frappe.db.count("Service Request"),
         )
     )
