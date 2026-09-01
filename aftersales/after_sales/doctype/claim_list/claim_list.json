@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "CL-.YYYY.-.MM",
+ "creation": "2026-09-01 10:11:55.103958",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "month",
+  "status",
+  "supplier_count",
+  "item_count",
+  "total_qty",
+  "generated_on",
+  "remark",
+  "section_items",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "month",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u7d22\u8d54\u6708\u4efd",
+   "reqd": 1
+  },
+  {
+   "default": "\u8349\u7a3f",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u72b6\u6001",
+   "options": "\u8349\u7a3f\n\u5df2\u53d1\u9001\u91c7\u8d2d\n\u5df2\u6838\u5bf9"
+  },
+  {
+   "fieldname": "supplier_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u4f9b\u5e94\u5546\u6570"
+  },
+  {
+   "fieldname": "item_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u660e\u7ec6\u6570"
+  },
+  {
+   "fieldname": "total_qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u603b\u6570\u91cf"
+  },
+  {
+   "fieldname": "generated_on",
+   "fieldtype": "Date",
+   "label": "\u751f\u6210\u65e5\u671f"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "\u6e05\u5355\u660e\u7ec6"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "\u6e05\u5355\u660e\u7ec6",
+   "options": "Claim List Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 10:11:55.103958",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Claim List",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "month, status",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "month",
+ "track_changes": 1
+}

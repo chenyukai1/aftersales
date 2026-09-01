@@ -21,5 +21,11 @@ doc_events = {
 scheduler_events = {
     "daily_long": [
         "aftersales.after_sales.doctype.old_part_recall.old_part_recall.run_recall_scheduler",
-    ]
+    ],
+    # 供应商索赔清单：每月 1 日凌晨 2 点自动生成上月清单
+    "cron": {
+        "0 2 1 * *": [
+            "aftersales.after_sales.doctype.claim_list.claim_list.run_monthly_scheduler",
+        ],
+    },
 }

@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-01 10:11:50.779751",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "service_request",
+  "part_code",
+  "part_name",
+  "qty",
+  "supplier",
+  "claim_requirement",
+  "chassis_no",
+  "fault_summary",
+  "claim_month",
+  "claim_week",
+  "factory_claim_date",
+  "supplier_claim_date",
+  "remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "service_request",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u552e\u540e\u767b\u8bb0",
+   "options": "Service Request"
+  },
+  {
+   "fieldname": "part_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u7f16\u7801"
+  },
+  {
+   "fieldname": "part_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u540d\u79f0"
+  },
+  {
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "\u6570\u91cf"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u4f9b\u5e94\u5546",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "claim_requirement",
+   "fieldtype": "Select",
+   "label": "\u7d22\u8d54\u9700\u6c42",
+   "options": "\u9700\u63d0\u4f9b\u65e7\u4ef6\n\u4ec5\u9700\u6e05\u5355\n\u4f9b\u5e94\u5546\u9884\u8d54\u65e0\u9700\u6e05\u5355&\u8d44\u6599\n\u6bcf\u6708\u63d0\u4f9b\u552e\u540e\u6e05\u5355\n\u9700\u8d44\u6599"
+  },
+  {
+   "fieldname": "chassis_no",
+   "fieldtype": "Data",
+   "label": "\u8f66\u8f86\u94ed\u724c"
+  },
+  {
+   "fieldname": "fault_summary",
+   "fieldtype": "Data",
+   "label": "\u6545\u969c\u7b80\u8ff0"
+  },
+  {
+   "fieldname": "claim_month",
+   "fieldtype": "Data",
+   "label": "\u7d22\u8d54\u6708\u4efd"
+  },
+  {
+   "fieldname": "claim_week",
+   "fieldtype": "Data",
+   "label": "\u7d22\u8d54\u5468\u6570"
+  },
+  {
+   "fieldname": "factory_claim_date",
+   "fieldtype": "Date",
+   "label": "\u5411\u5de5\u5382\u7d22\u8d54\u65e5\u671f"
+  },
+  {
+   "fieldname": "supplier_claim_date",
+   "fieldtype": "Date",
+   "label": "\u5de5\u5382\u5df2\u5411\u4f9b\u5e94\u5546\u7d22\u8d54\u65e5\u671f"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-01 10:11:50.779751",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Claim List Item",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "part_code, part_name, service_request",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

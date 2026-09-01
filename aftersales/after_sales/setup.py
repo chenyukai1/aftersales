@@ -361,6 +361,54 @@ def create_old_part_recall_reminder():
     )
 
 
+def create_claim_list_item():
+    """索赔清单明细（child table）。"""
+    return _make_doctype(
+        "Claim List Item",
+        [
+            _field("service_request", "售后登记", "Link", options="Service Request", in_list_view=1),
+            _field("part_code", "配件编码", in_list_view=1),
+            _field("part_name", "配件名称", in_list_view=1),
+            _field("qty", "数量", "Int", default=1, in_list_view=1),
+            _field("supplier", "供应商", "Link", options="Supplier", in_list_view=1),
+            _field("claim_requirement", "索赔需求", "Select", options="需提供旧件\n仅需清单\n供应商预赔无需清单&资料\n每月提供售后清单\n需资料"),
+            _field("chassis_no", "车辆铭牌"),
+            _field("fault_summary", "故障简述"),
+            _field("claim_month", "索赔月份"),
+            _field("claim_week", "索赔周数"),
+            _field("factory_claim_date", "向工厂索赔日期", "Date"),
+            _field("supplier_claim_date", "工厂已向供应商索赔日期", "Date"),
+            _field("remark", "备注"),
+        ],
+        istable=1,
+        search_fields="part_code, part_name, service_request",
+    )
+
+
+def create_claim_list():
+    """供应商索赔清单：每月自动生成「无需实物」索赔项，同步采购处理。"""
+    return _make_doctype(
+        "Claim List",
+        [
+            _field("month", "索赔月份", "Data", reqd=1, in_list_view=1),
+            _field(
+                "status", "状态", "Select",
+                options="草稿\n已发送采购\n已核对", default="草稿", in_list_view=1,
+            ),
+            _field("supplier_count", "供应商数", "Int", in_list_view=1),
+            _field("item_count", "明细数", "Int", in_list_view=1),
+            _field("total_qty", "总数量", "Int", in_list_view=1),
+            _field("generated_on", "生成日期", "Date"),
+            _field("remark", "备注"),
+            _field("section_items", "清单明细", "Section Break"),
+            _field("items", "清单明细", "Table", options="Claim List Item"),
+        ],
+        # 命名由 generate_monthly_claim_list 显式指定（CL-YYYY-MM），不设 autoname
+        search_fields="month, status",
+        title_field="month",
+    )
+
+
 def create_old_part_recall():
     """旧件追回：坏件需要寄回的配件，发货一周后按周提醒，直至已追回或超 60 天终止。"""
     return _make_doctype(
@@ -416,6 +464,8 @@ def after_install():
     create_dn_custom_field()
     create_old_part_recall_reminder()
     create_old_part_recall()
+    create_claim_list_item()
+    create_claim_list()
     frappe.db.commit()
 
 
