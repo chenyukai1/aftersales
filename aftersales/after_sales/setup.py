@@ -348,6 +348,54 @@ def create_dn_custom_field():
     ).insert()
 
 
+def create_old_part_recall_reminder():
+    """追回提醒历史（child table）。"""
+    return _make_doctype(
+        "Old Part Recall Reminder",
+        [
+            _field("remind_date", "提醒日期", "Date", reqd=1, in_list_view=1),
+            _field("remind_by", "提醒人"),
+            _field("note", "备注"),
+        ],
+        istable=1,
+    )
+
+
+def create_old_part_recall():
+    """旧件追回：坏件需要寄回的配件，发货一周后按周提醒，直至已追回或超 60 天终止。"""
+    return _make_doctype(
+        "Old Part Recall",
+        [
+            _field("section_main", "追回信息", "Section Break"),
+            _field("service_request", "售后登记", "Link", options="Service Request", in_list_view=1),
+            _field("chassis_no", "车辆铭牌", in_list_view=1),
+            _field("customer", "客户简称", "Link", options="Customer", in_list_view=1),
+            _field("part_code", "配件编码", in_list_view=1),
+            _field("part_name", "配件名称", in_list_view=1),
+            _field("supplier", "配件供应商", "Link", options="Supplier", in_list_view=1),
+            _field("ship_date", "发货日期", "Date", in_list_view=1),
+            _field(
+                "trigger_type", "触发类型", "Select",
+                options="坏件需寄回\n新品验证\n特定品号", default="坏件需寄回", in_list_view=1,
+            ),
+            _field(
+                "status", "状态", "Select",
+                options="待提醒\n已提醒\n已追回\n超时终止", default="待提醒", in_list_view=1,
+            ),
+            _field("first_remind_date", "首次提醒日期", "Date"),
+            _field("last_remind_date", "最近提醒日期", "Date"),
+            _field("remind_count", "已提醒次数", "Int"),
+            _field("bad_part_arrived", "坏件到货日期", "Date"),
+            _field("returned_to_factory", "退回工厂日期", "Date"),
+            _field("remark", "备注"),
+            _field("section_history", "提醒历史", "Section Break"),
+            _field("reminders", "提醒历史", "Table", options="Old Part Recall Reminder"),
+        ],
+        autoname="RCL-.YYYY.-.####",
+        search_fields="part_code, part_name, chassis_no, service_request",
+    )
+
+
 def after_install():
     for func in (
         create_vehicle_delivery,
@@ -366,6 +414,8 @@ def after_install():
     sync_dynamic_options()
     sync_spare_part_erp_item()
     create_dn_custom_field()
+    create_old_part_recall_reminder()
+    create_old_part_recall()
     frappe.db.commit()
 
 

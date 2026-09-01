@@ -16,3 +16,10 @@ doc_events = {
         "on_submit": "aftersales.after_sales.doctype.claim_order.claim_order.update_delivery_note_status",
     }
 }
+
+# 旧件追回：每日检查提醒 / 超时终止
+scheduler_events = {
+    "daily_long": [
+        "aftersales.after_sales.doctype.old_part_recall.old_part_recall.run_recall_scheduler",
+    ]
+}

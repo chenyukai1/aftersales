@@ -20,7 +20,12 @@ class ServiceRequest(Document):
         self.calc_parts()
 
     def on_submit(self):
-        """提交后自动创建索赔单（草稿），无需录 ERP（erp_recorded=——）场景跳过。"""
+        """提交后：自动创建索赔单（草稿）+ 旧件追回提醒。"""
+        self.create_claim_order()
+        self.create_recalls()
+
+    def create_claim_order(self):
+        """无需录 ERP（erp_recorded=——）场景跳过。"""
         if self.erp_recorded == "——":
             return
         parts = [p for p in self.parts if p.new_part_code]
@@ -52,6 +57,31 @@ class ServiceRequest(Document):
             }
         )
         co.insert(ignore_permissions=True)
+
+    def create_recalls(self):
+        """配件「坏件需要寄回=是」→ 自动创建旧件追回（待提醒）。"""
+        for p in self.parts:
+            if p.need_return != "是":
+                continue
+            if frappe.db.exists(
+                "Old Part Recall",
+                {"service_request": self.name, "part_code": p.new_part_code},
+            ):
+                continue
+            frappe.get_doc(
+                {
+                    "doctype": "Old Part Recall",
+                    "service_request": self.name,
+                    "chassis_no": self.chassis_no,
+                    "customer": self.customer,
+                    "part_code": p.new_part_code,
+                    "part_name": p.new_part_name,
+                    "supplier": p.fault_part_supplier,
+                    "ship_date": p.ship_date or self.feedback_date,
+                    "trigger_type": "坏件需寄回",
+                    "status": "待提醒",
+                }
+            ).insert(ignore_permissions=True)
 
     # ---------- 车辆信息带出与公式 ----------
     def calc_vehicle_fields(self):

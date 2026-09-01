@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "RCL-.YYYY.-.####",
+ "creation": "2026-09-01 09:39:42.551648",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_main",
+  "service_request",
+  "chassis_no",
+  "customer",
+  "part_code",
+  "part_name",
+  "supplier",
+  "ship_date",
+  "trigger_type",
+  "status",
+  "first_remind_date",
+  "last_remind_date",
+  "remind_count",
+  "bad_part_arrived",
+  "returned_to_factory",
+  "remark",
+  "section_history",
+  "reminders"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_main",
+   "fieldtype": "Section Break",
+   "label": "\u8ffd\u56de\u4fe1\u606f"
+  },
+  {
+   "fieldname": "service_request",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u552e\u540e\u767b\u8bb0",
+   "options": "Service Request"
+  },
+  {
+   "fieldname": "chassis_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u8f66\u8f86\u94ed\u724c"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u5ba2\u6237\u7b80\u79f0",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "part_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u7f16\u7801"
+  },
+  {
+   "fieldname": "part_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u540d\u79f0"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u914d\u4ef6\u4f9b\u5e94\u5546",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "ship_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u53d1\u8d27\u65e5\u671f"
+  },
+  {
+   "default": "\u574f\u4ef6\u9700\u5bc4\u56de",
+   "fieldname": "trigger_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u89e6\u53d1\u7c7b\u578b",
+   "options": "\u574f\u4ef6\u9700\u5bc4\u56de\n\u65b0\u54c1\u9a8c\u8bc1\n\u7279\u5b9a\u54c1\u53f7"
+  },
+  {
+   "default": "\u5f85\u63d0\u9192",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u72b6\u6001",
+   "options": "\u5f85\u63d0\u9192\n\u5df2\u63d0\u9192\n\u5df2\u8ffd\u56de\n\u8d85\u65f6\u7ec8\u6b62"
+  },
+  {
+   "fieldname": "first_remind_date",
+   "fieldtype": "Date",
+   "label": "\u9996\u6b21\u63d0\u9192\u65e5\u671f"
+  },
+  {
+   "fieldname": "last_remind_date",
+   "fieldtype": "Date",
+   "label": "\u6700\u8fd1\u63d0\u9192\u65e5\u671f"
+  },
+  {
+   "fieldname": "remind_count",
+   "fieldtype": "Int",
+   "label": "\u5df2\u63d0\u9192\u6b21\u6570"
+  },
+  {
+   "fieldname": "bad_part_arrived",
+   "fieldtype": "Date",
+   "label": "\u574f\u4ef6\u5230\u8d27\u65e5\u671f"
+  },
+  {
+   "fieldname": "returned_to_factory",
+   "fieldtype": "Date",
+   "label": "\u9000\u56de\u5de5\u5382\u65e5\u671f"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  },
+  {
+   "fieldname": "section_history",
+   "fieldtype": "Section Break",
+   "label": "\u63d0\u9192\u5386\u53f2"
+  },
+  {
+   "fieldname": "reminders",
+   "fieldtype": "Table",
+   "label": "\u63d0\u9192\u5386\u53f2",
+   "options": "Old Part Recall Reminder"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-01 09:39:42.551648",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Old Part Recall",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "part_code, part_name, chassis_no, service_request",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

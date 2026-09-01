@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-01 09:39:39.227811",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "remind_date",
+  "remind_by",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "remind_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u63d0\u9192\u65e5\u671f",
+   "reqd": 1
+  },
+  {
+   "fieldname": "remind_by",
+   "fieldtype": "Data",
+   "label": "\u63d0\u9192\u4eba"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Data",
+   "label": "\u5907\u6ce8"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-01 09:39:39.227811",
+ "modified_by": "Administrator",
+ "module": "after_sales",
+ "name": "Old Part Recall Reminder",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
