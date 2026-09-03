@@ -58,6 +58,8 @@ def create_vehicle_delivery():
             _field("hangcha_model", "杭叉型号", in_list_view=1),
             _field("serial_no", "序列号", reqd=1, unique=1, in_list_view=1),
             _field("chassis_no", "车架号", reqd=1, unique=1, in_list_view=1),
+            _field("customer", "购车客户", "Link", options="Customer", in_list_view=1),
+            _field("customer_contact", "客户对接人", in_list_view=1),
             _field("shibeida_model", "事倍达型号", in_list_view=1),
             _field("fork_size", "货叉尺寸", in_list_view=1),
             _field("product_color", "产品颜色", "Select", options="黄色\n灰色\n红色\n蓝色\n其他", in_list_view=1),
@@ -177,21 +179,21 @@ def create_service_part_item():
             _field("batch_no", "坏件批次号"),
             _field("usage_duration", "使用时长"),
             _field("old_part_code", "老配件编码", in_list_view=1),
-            _field("old_part_name", "老配件名称", in_list_view=1),
+            _field("old_part_name", "老配件名称", in_list_view=1, read_only=1),
             _field("fault_part_supplier", "故障部件供应商", "Link", options="Supplier"),
             _field(
                 "claim_requirement", "索赔需求", "Select",
                 options="需提供旧件\n仅需清单\n供应商预赔无需清单&资料\n每月提供售后清单\n需资料",
             ),
-            _field("need_return", "坏件需要寄回", "Select", options="是\n否", in_list_view=1),
+            _field("need_return", "坏件需要寄回", "Select", options="是\n否", default="否", in_list_view=1),
             # 三包新件
             _field("section_new_part", "三包新件", "Section Break"),
             _field("new_part_code", "新配件编码", in_list_view=1),
-            _field("new_part_name", "新配件名称", in_list_view=1),
-            _field("erp_qty", "ERP发货数量", "Int", in_list_view=1),
+            _field("new_part_name", "新配件名称", in_list_view=1, read_only=1),
+            _field("erp_qty", "ERP发货数量", "Int", default=1, in_list_view=1),
             _field("gift_qty", "本单赠送数量", "Int", in_list_view=1),
-            _field("actual_claim_qty", "本单实际索赔数量", "Int", in_list_view=1),
-            _field("erp_new_code", "新配件编码录ERP"),
+            _field("actual_claim_qty", "本单实际索赔数量", "Int", in_list_view=1, read_only=1),
+            _field("erp_new_code", "新配件编码录ERP", read_only=1),
             # 坏件追回
             _field("section_recall", "坏件追回", "Section Break"),
             _field("return_focus", "坏件需要重点关注"),
@@ -207,6 +209,7 @@ def create_service_part_item():
             _field(
                 "ship_method", "发货方式", "Select",
                 options="顺丰寄付\n顺丰到付\n中通\n圆通\n韵达\n德邦\n随车",
+                default="顺丰寄付",
             ),
             _field("tracking_no", "快递/物流/随车单号"),
             _field("recipient", "收件人"),
@@ -234,22 +237,25 @@ def create_service_request():
             _field(
                 "oa_status", "OA", "Select",
                 options="N\nY\n撤销",
+                default="N",
             ),
             _field(
                 "erp_recorded", "ERP录入", "Select",
                 options="OK\n——\n看详情",
+                default="OK",
             ),
             _field("customer", "客户简称", "Link", options="Customer", in_list_view=1),
             _field("contact_person", "对接人", in_list_view=1),
             _field(
                 "service_type", "服务类型", "Select",
                 options="普通索赔\n特殊申请\n附带索赔",
-                reqd=1, in_list_view=1,
+                reqd=1, in_list_view=1, default="普通索赔",
             ),
             _field("fault_description", "故障描述（全过程跟踪）", "Text Editor"),
             _field(
                 "handling_action", "处理措施", "Select",
                 options="索赔配件\n赔钱\n赠送",
+                default="索赔配件",
             ),
             _field(
                 "after_sale_type", "售后类型", "Select",
@@ -266,27 +272,31 @@ def create_service_request():
             _field("exception_reason", "异常售后必填项（使用环境/运输货品等）", "Small Text"),
             _field("special_config", "车辆下单时的特殊配置"),
             _field("manufacture_date", "出厂日期", "Date"),
-            _field("days_since_manufacture", "出厂天数", "Int"),
+            _field("days_since_manufacture", "出厂天数", "Int", read_only=1),
             _field(
                 "after_sale_band", "售后波段", "Select",
                 options="A\nB\nC",
+                read_only=1,
             ),
             # 公式统计区
             _field("section_stats", "统计 / 状态", "Section Break"),
             _field(
                 "customer_status", "状态（客户）", "Select",
                 options="已接单\n已发货\n完成",
+                read_only=1,
             ),
             _field(
                 "department_status", "状态（部门）", "Select",
                 options="索赔件已发\n坏件已退回\n完成",
+                read_only=1,
             ),
-            _field("claim_month", "索赔月份"),
-            _field("claim_week", "索赔周数"),
-            _field("manufacture_month", "出厂月份"),
+            _field("claim_month", "索赔月份", read_only=1),
+            _field("claim_week", "索赔周数", read_only=1),
+            _field("manufacture_month", "出厂月份", read_only=1),
             _field(
                 "customer_callback", "客户回访", "Select",
                 options="待回访\n已回访",
+                default="待回访",
             ),
         ],
         autoname="service.YYYY.MM.####",
@@ -545,6 +555,8 @@ def after_install():
         func()
     sync_dynamic_options()
     sync_spare_part_erp_item()
+    sync_vehicle_delivery_customer()
+    sync_simplify_form()
     create_dn_custom_field()
     create_old_part_recall_reminder()
     create_old_part_recall()
@@ -648,6 +660,84 @@ def sync_service_part_item_attachments():
     existing = {f.fieldname for f in dt.fields}
     added = False
     for f in fields:
+        if f["fieldname"] not in existing:
+            dt.append("fields", f)
+            added = True
+    if added:
+        dt.save(ignore_permissions=True)
+        frappe.db.commit()
+
+
+# 登记表单"少人工填写"字段属性表：doctype -> {fieldname: {attr: value}}
+SIMPLIFY_FORM_ATTRS = {
+    "Service Request": {
+        "oa_status": {"default": "N"},
+        "erp_recorded": {"default": "OK"},
+        "service_type": {"default": "普通索赔"},
+        "handling_action": {"default": "索赔配件"},
+        "customer_callback": {"default": "待回访"},
+        # 纯公式计算字段 → 只读（避免误编辑）
+        "days_since_manufacture": {"read_only": 1},
+        "after_sale_band": {"read_only": 1},
+        "customer_status": {"read_only": 1},
+        "department_status": {"read_only": 1},
+        "claim_month": {"read_only": 1},
+        "claim_week": {"read_only": 1},
+        "manufacture_month": {"read_only": 1},
+    },
+    "Service Part Item": {
+        "need_return": {"default": "否"},
+        "erp_qty": {"default": 1},
+        "ship_method": {"default": "顺丰寄付"},
+        # 带出/公式字段 → 只读
+        "old_part_name": {"read_only": 1},
+        "new_part_name": {"read_only": 1},
+        "actual_claim_qty": {"read_only": 1},
+        "erp_new_code": {"read_only": 1},
+    },
+}
+
+
+def sync_simplify_form():
+    """登记表单"少人工填写"优化：字段默认值 + 公式/带出字段只读（幂等，可重复执行）。
+
+    bench --site dev.localhost execute "frappe.get_attr('aftersales.after_sales.setup.sync_simplify_form')()"
+    """
+    for doctype, attrs in SIMPLIFY_FORM_ATTRS.items():
+        if not frappe.db.exists("DocType", doctype):
+            continue
+        dt = frappe.get_doc("DocType", doctype)
+        changed = False
+        for f in dt.fields:
+            if f.fieldname in attrs:
+                for attr, value in attrs[f.fieldname].items():
+                    # DocField 的 default 需以字符串存储（Int 字段的 1 → "1"），read_only 保持整数
+                    if attr == "default":
+                        value = str(value)
+                    if f.get(attr) != value:
+                        f.set(attr, value)
+                        changed = True
+        if changed:
+            dt.save(ignore_permissions=True)
+    frappe.db.commit()
+
+
+def sync_vehicle_delivery_customer():
+    """Vehicle Delivery 补充购车客户字段（铭牌→客户/对接人自动带出数据源，幂等）。
+
+    整车发货数据导入时需一并维护 customer（Link Customer）。
+    bench --site dev.localhost execute "frappe.get_attr('aftersales.after_sales.setup.sync_vehicle_delivery_customer')()"
+    """
+    if not frappe.db.exists("DocType", "Vehicle Delivery"):
+        return
+    dt = frappe.get_doc("DocType", "Vehicle Delivery")
+    new_fields = [
+        {"fieldname": "customer", "label": "购车客户", "fieldtype": "Link", "options": "Customer", "in_list_view": 1},
+        {"fieldname": "customer_contact", "label": "客户对接人", "fieldtype": "Data", "in_list_view": 1},
+    ]
+    existing = {f.fieldname for f in dt.fields}
+    added = False
+    for f in new_fields:
         if f["fieldname"] not in existing:
             dt.append("fields", f)
             added = True

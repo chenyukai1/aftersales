@@ -159,8 +159,46 @@ def _seed_vehicles():
                 "product_color": row[6],
                 "special_config": row[7],
                 "offline_change": row[8],
+                "customer": VEHICLE_CUSTOMERS.get(row[3], ("", ""))[0],
+                "customer_contact": VEHICLE_CUSTOMERS.get(row[3], ("", ""))[1],
             }
         ).insert(ignore_permissions=True)
+
+
+# 车架号 → (购车客户, 客户对接人)：铭牌输入后自动带出客户，减少登记人工填写
+VEHICLE_CUSTOMERS = {
+    "HC-2026-0115-001": ("零星客户", "大程"),
+    "HC-2026-0203-002": ("吉安吉翔/江西雷翼", "刘清华"),
+    "HC-2026-0227-003": ("吉安吉翔/江西雷翼", "刘清华"),
+    "HC-2026-0318-004": ("零星客户", "大程"),
+    "HC-2026-0409-005": ("杭州杭叉电子商务有限公司", "王芳"),
+    "HC-2026-0512-006": ("杭州杭叉电子商务有限公司", "王芳"),
+    "HC-2026-0606-007": ("零星客户", "大程"),
+    "HC-2026-0628-008": ("吉安吉翔/江西雷翼", "刘清华"),
+    "HC-2026-0717-009": ("杭州杭叉电子商务有限公司", "王芳"),
+    "HC-2026-0802-010": ("零星客户", "大程"),
+}
+
+
+def _seed_vehicle_customers():
+    """为已存在的整车发货记录补购车客户/对接人（幂等）。"""
+    for chassis, (customer, contact) in VEHICLE_CUSTOMERS.items():
+        if not customer:
+            continue
+        if not frappe.db.exists("Vehicle Delivery", {"chassis_no": chassis}):
+            continue
+        cur = frappe.db.get_value(
+            "Vehicle Delivery", {"chassis_no": chassis}, ["customer", "customer_contact"], as_dict=True
+        )
+        if not cur:
+            continue
+        updates = {}
+        if not cur.customer:
+            updates["customer"] = customer
+        if not cur.customer_contact:
+            updates["customer_contact"] = contact
+        if updates:
+            frappe.db.set_value("Vehicle Delivery", {"chassis_no": chassis}, updates)
 
 
 def _seed_parts_reg():
@@ -255,6 +293,78 @@ def _seed_customers():
                     "territory": "All Territories",
                 }
             ).insert(ignore_permissions=True)
+
+
+# 客户 → (对接人姓名, 电话, 地址行1, 城市, 省份)：登记选客户后自动预填收件信息
+CUSTOMER_SHIP = {
+    "零星客户": ("大程", "13800000001", "余姚市牟山镇新东吴村兴达路1号", "余姚市", "浙江"),
+    "吉安吉翔/江西雷翼": ("刘清华", "13900000002", "吉州区工业园发展大道2号", "吉安市", "江西"),
+    "杭州杭叉电子商务有限公司": ("王芳", "13700000003", "青山湖街道科技大道88号", "杭州市", "浙江"),
+}
+
+
+def _seed_customer_contacts():
+    """为客户建立主联系人 + 主地址（演示：选客户自动带出对接人/收件人/电话/地址）。幂等。"""
+    country = "中国" if frappe.db.exists("Country", "中国") else None
+    for customer, (person, phone, line1, city, state) in CUSTOMER_SHIP.items():
+        if not frappe.db.exists("Customer", {"customer_name": customer}):
+            continue
+        # 已存在主联系人则跳过
+        has_contact = frappe.db.sql(
+            """select c.name from `tabContact` c
+               inner join `tabDynamic Link` dl on dl.parent = c.name
+                   and dl.parenttype = 'Contact' and dl.link_doctype = 'Customer'
+               where dl.link_name = %s and c.is_primary_contact = 1
+               limit 1""",
+            customer,
+        )
+        if has_contact:
+            contact_name = has_contact[0][0]
+        else:
+            contact = frappe.get_doc(
+                {
+                    "doctype": "Contact",
+                    "first_name": person,
+                    "is_primary_contact": 1,
+                    "mobile_no": phone,
+                    "links": [{"link_doctype": "Customer", "link_name": customer}],
+                }
+            ).insert(ignore_permissions=True)
+            contact_name = contact.name
+        # 已存在主地址则跳过
+        has_addr = frappe.db.sql(
+            """select a.name from `tabAddress` a
+               inner join `tabDynamic Link` dl on dl.parent = a.name
+                   and dl.parenttype = 'Address' and dl.link_doctype = 'Customer'
+               where dl.link_name = %s and a.is_primary_address = 1
+               limit 1""",
+            customer,
+        )
+        if has_addr:
+            addr_name = has_addr[0][0]
+        else:
+            addr = frappe.get_doc(
+                {
+                    "doctype": "Address",
+                    "address_title": customer,
+                    "address_type": "Shipping",
+                    "address_line1": line1,
+                    "city": city,
+                    "state": state,
+                    "country": country,
+                    "is_primary_address": 1,
+                    "links": [{"link_doctype": "Customer", "link_name": customer}],
+                }
+            ).insert(ignore_permissions=True)
+            addr_name = addr.name
+        # 绑定 Customer 主联系人/主地址（ERPNext 标准字段，供快速取用）
+        cust = frappe.db.get_value(
+            "Customer", {"customer_name": customer}, ["customer_primary_contact", "customer_primary_address"], as_dict=True
+        )
+        if cust and not cust.customer_primary_contact:
+            frappe.db.set_value("Customer", {"customer_name": customer}, "customer_primary_contact", contact_name)
+        if cust and not cust.customer_primary_address:
+            frappe.db.set_value("Customer", {"customer_name": customer}, "customer_primary_address", addr_name)
 
 
 # 演示售后单（对齐 2026-01-04 真实样例结构）
@@ -403,11 +513,13 @@ def _ensure_api_key():
 def run():
     _seed_suppliers()
     _seed_vehicles()
+    _seed_vehicle_customers()
     _seed_parts_reg()
     _seed_spare_parts()
     _seed_fault_dict()
     _seed_options()
     _seed_customers()
+    _seed_customer_contacts()
     _seed_mock_items()
     _seed_service_samples()
     _seed_demo_users()

@@ -50,12 +50,14 @@
    "reqd": 1
   },
   {
+   "default": "N",
    "fieldname": "oa_status",
    "fieldtype": "Select",
    "label": "OA",
    "options": "N\nY\n\u64a4\u9500"
   },
   {
+   "default": "OK",
    "fieldname": "erp_recorded",
    "fieldtype": "Select",
    "label": "ERP\u5f55\u5165",
@@ -75,6 +77,7 @@
    "label": "\u5bf9\u63a5\u4eba"
   },
   {
+   "default": "\u666e\u901a\u7d22\u8d54",
    "fieldname": "service_type",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -88,6 +91,7 @@
    "label": "\u6545\u969c\u63cf\u8ff0\uff08\u5168\u8fc7\u7a0b\u8ddf\u8e2a\uff09"
   },
   {
+   "default": "\u7d22\u8d54\u914d\u4ef6",
    "fieldname": "handling_action",
    "fieldtype": "Select",
    "label": "\u5904\u7406\u63aa\u65bd",
@@ -151,13 +155,15 @@
   {
    "fieldname": "days_since_manufacture",
    "fieldtype": "Int",
-   "label": "\u51fa\u5382\u5929\u6570"
+   "label": "\u51fa\u5382\u5929\u6570",
+   "read_only": 1
   },
   {
    "fieldname": "after_sale_band",
    "fieldtype": "Select",
    "label": "\u552e\u540e\u6ce2\u6bb5",
-   "options": "A\nB\nC"
+   "options": "A\nB\nC",
+   "read_only": 1
   },
   {
    "fieldname": "section_stats",
@@ -168,30 +174,36 @@
    "fieldname": "customer_status",
    "fieldtype": "Select",
    "label": "\u72b6\u6001\uff08\u5ba2\u6237\uff09",
-   "options": "\u5df2\u63a5\u5355\n\u5df2\u53d1\u8d27\n\u5b8c\u6210"
+   "options": "\u5df2\u63a5\u5355\n\u5df2\u53d1\u8d27\n\u5b8c\u6210",
+   "read_only": 1
   },
   {
    "fieldname": "department_status",
    "fieldtype": "Select",
    "label": "\u72b6\u6001\uff08\u90e8\u95e8\uff09",
-   "options": "\u7d22\u8d54\u4ef6\u5df2\u53d1\n\u574f\u4ef6\u5df2\u9000\u56de\n\u5b8c\u6210"
+   "options": "\u7d22\u8d54\u4ef6\u5df2\u53d1\n\u574f\u4ef6\u5df2\u9000\u56de\n\u5b8c\u6210",
+   "read_only": 1
   },
   {
    "fieldname": "claim_month",
    "fieldtype": "Data",
-   "label": "\u7d22\u8d54\u6708\u4efd"
+   "label": "\u7d22\u8d54\u6708\u4efd",
+   "read_only": 1
   },
   {
    "fieldname": "claim_week",
    "fieldtype": "Data",
-   "label": "\u7d22\u8d54\u5468\u6570"
+   "label": "\u7d22\u8d54\u5468\u6570",
+   "read_only": 1
   },
   {
    "fieldname": "manufacture_month",
    "fieldtype": "Data",
-   "label": "\u51fa\u5382\u6708\u4efd"
+   "label": "\u51fa\u5382\u6708\u4efd",
+   "read_only": 1
   },
   {
+   "default": "\u5f85\u56de\u8bbf",
    "fieldname": "customer_callback",
    "fieldtype": "Select",
    "label": "\u5ba2\u6237\u56de\u8bbf",
@@ -201,7 +213,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-01 13:13:48.730869",
+ "modified": "2026-09-03 08:21:39.055337",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Service Request",

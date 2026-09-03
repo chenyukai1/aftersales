@@ -15,7 +15,9 @@
   "fork_size",
   "product_color",
   "special_config",
-  "offline_change"
+  "offline_change",
+  "customer",
+  "customer_contact"
  ],
  "fields": [
   {
@@ -77,12 +79,25 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "\u7ebf\u4e0b\u6539\u5355"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u8d2d\u8f66\u5ba2\u6237",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "customer_contact",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u5ba2\u6237\u5bf9\u63a5\u4eba"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-01 11:19:15.928300",
+ "modified": "2026-09-03 08:21:27.967440",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Vehicle Delivery",

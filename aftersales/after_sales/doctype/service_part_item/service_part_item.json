@@ -67,7 +67,8 @@
    "fieldname": "old_part_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "\u8001\u914d\u4ef6\u540d\u79f0"
+   "label": "\u8001\u914d\u4ef6\u540d\u79f0",
+   "read_only": 1
   },
   {
    "fieldname": "fault_part_supplier",
@@ -82,6 +83,7 @@
    "options": "\u9700\u63d0\u4f9b\u65e7\u4ef6\n\u4ec5\u9700\u6e05\u5355\n\u4f9b\u5e94\u5546\u9884\u8d54\u65e0\u9700\u6e05\u5355&\u8d44\u6599\n\u6bcf\u6708\u63d0\u4f9b\u552e\u540e\u6e05\u5355\n\u9700\u8d44\u6599"
   },
   {
+   "default": "\u5426",
    "fieldname": "need_return",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -103,9 +105,11 @@
    "fieldname": "new_part_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "\u65b0\u914d\u4ef6\u540d\u79f0"
+   "label": "\u65b0\u914d\u4ef6\u540d\u79f0",
+   "read_only": 1
   },
   {
+   "default": "1",
    "fieldname": "erp_qty",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -121,12 +125,14 @@
    "fieldname": "actual_claim_qty",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "\u672c\u5355\u5b9e\u9645\u7d22\u8d54\u6570\u91cf"
+   "label": "\u672c\u5355\u5b9e\u9645\u7d22\u8d54\u6570\u91cf",
+   "read_only": 1
   },
   {
    "fieldname": "erp_new_code",
    "fieldtype": "Data",
-   "label": "\u65b0\u914d\u4ef6\u7f16\u7801\u5f55ERP"
+   "label": "\u65b0\u914d\u4ef6\u7f16\u7801\u5f55ERP",
+   "read_only": 1
   },
   {
    "fieldname": "section_recall",
@@ -179,6 +185,7 @@
    "label": "\u53d1\u8d27\u65e5\u671f"
   },
   {
+   "default": "\u987a\u4e30\u5bc4\u4ed8",
    "fieldname": "ship_method",
    "fieldtype": "Select",
    "label": "\u53d1\u8d27\u65b9\u5f0f",
@@ -229,7 +236,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-01 11:19:12.602118",
+ "modified": "2026-09-03 08:21:42.915021",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Service Part Item",

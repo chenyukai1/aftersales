@@ -131,7 +131,10 @@ class ServiceRequest(Document):
         vehicle = frappe.db.get_value(
             "Vehicle Delivery",
             {"chassis_no": self.chassis_no},
-            ["hangcha_model", "special_config", "delivery_date", "shibeida_model"],
+            [
+                "hangcha_model", "special_config", "delivery_date",
+                "shibeida_model", "customer", "customer_contact",
+            ],
             as_dict=True,
         )
         if vehicle:
@@ -141,6 +144,10 @@ class ServiceRequest(Document):
                 self.special_config = vehicle.special_config or ""
             if not self.manufacture_date:
                 self.manufacture_date = vehicle.delivery_date
+            if vehicle.customer and not self.customer:
+                self.customer = vehicle.customer
+            if vehicle.customer_contact and not self.contact_person:
+                self.contact_person = vehicle.customer_contact
         # 出厂天数 & 波段
         if self.manufacture_date:
             days = (getdate(today()) - getdate(self.manufacture_date)).days
@@ -203,8 +210,8 @@ class ServiceRequest(Document):
                 )
                 row.new_part_name = (sp.part_name if sp else "需完善配件价格表") or "需完善配件价格表"
                 row.erp_new_code = row.new_part_code
-            # 实际索赔数量 = ERP发货 - 赠送
-            if row.erp_qty is not None and row.gift_qty is not None:
+            # 实际索赔数量 = ERP发货 - 赠送（无赠送按 0 计）
+            if row.erp_qty is not None:
                 row.actual_claim_qty = int(row.erp_qty or 0) - int(row.gift_qty or 0)
             # 发货日期 = 反馈日期
             if self.feedback_date and not row.ship_date:
@@ -234,11 +241,14 @@ class ServiceRequest(Document):
 
 @frappe.whitelist()
 def fetch_vehicle_info(chassis_no):
-    """前端调用：按车辆铭牌带出车辆信息。"""
+    """前端调用：按车辆铭牌带出车辆信息（含购车客户/对接人，减少登记人工填写）。"""
     row = frappe.db.get_value(
         "Vehicle Delivery",
         {"chassis_no": chassis_no},
-        ["hangcha_model", "shibeida_model", "special_config", "delivery_date"],
+        [
+            "hangcha_model", "shibeida_model", "special_config", "delivery_date",
+            "customer", "customer_contact",
+        ],
         as_dict=True,
     )
     if not row:
@@ -252,7 +262,70 @@ def fetch_vehicle_info(chassis_no):
         "manufacture_date": row.delivery_date,
         "days_since_manufacture": days,
         "after_sale_band": band,
+        "customer": row.customer or "",
+        "customer_contact": row.customer_contact or "",
     }
+
+
+@frappe.whitelist()
+def fetch_customer_ship_info(customer):
+    """客户选定后带出默认对接人 / 收件人 / 电话 / 地址（来源：客户主档关联的
+    主联系人 Contact 与主地址 Address），供登记主表对接人与配件行发货信息预填。"""
+    out = {
+        "found": False,
+        "message": "",
+        "contact_person": "",
+        "recipient": "",
+        "phone": "",
+        "address": "",
+    }
+    if not customer:
+        return out
+    # 1) 主联系人：优先 Customer 已绑定主联系人，其次查关联 Contact
+    contact_name = frappe.db.get_value("Customer", customer, "customer_primary_contact")
+    if not contact_name:
+        contact_name = frappe.db.sql(
+            """select c.name from `tabContact` c
+               inner join `tabDynamic Link` dl on dl.parent = c.name
+                   and dl.parenttype = 'Contact' and dl.link_doctype = 'Customer'
+               where dl.link_name = %s and c.is_primary_contact = 1
+               limit 1""",
+            customer,
+        )
+        contact_name = contact_name[0][0] if contact_name else None
+    if contact_name:
+        c = frappe.db.get_value(
+            "Contact", contact_name, ["full_name", "mobile_no", "phone"], as_dict=True
+        )
+        if c:
+            out["contact_person"] = c.full_name or ""
+            out["recipient"] = c.full_name or ""
+            out["phone"] = c.mobile_no or c.phone or ""
+    # 2) 主地址
+    address_name = frappe.db.get_value("Customer", customer, "customer_primary_address")
+    if not address_name:
+        address_name = frappe.db.sql(
+            """select a.name from `tabAddress` a
+               inner join `tabDynamic Link` dl on dl.parent = a.name
+                   and dl.parenttype = 'Address' and dl.link_doctype = 'Customer'
+               where dl.link_name = %s and a.is_primary_address = 1
+               limit 1""",
+            customer,
+        )
+        address_name = address_name[0][0] if address_name else None
+    if address_name:
+        a = frappe.db.get_value(
+            "Address", address_name,
+            ["address_line1", "address_line2", "city", "county", "state"],
+            as_dict=True,
+        )
+        if a:
+            addr = " ".join(
+                x for x in [a.address_line1, a.address_line2, a.city or a.county, a.state] if x
+            )
+            out["address"] = addr
+    out["found"] = bool(out["recipient"] or out["contact_person"] or out["address"])
+    return out
 
 
 @frappe.whitelist()
