@@ -39,7 +39,8 @@
   "ship_region",
   "section_files",
   "fault_photo",
-  "fault_video"
+  "fault_video",
+  "improvement_item"
  ],
  "fields": [
   {
@@ -230,13 +231,20 @@
    "fieldname": "fault_video",
    "fieldtype": "Attach",
    "label": "\u6545\u969c\u89c6\u9891"
+  },
+  {
+   "fieldname": "improvement_item",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "\u6539\u8fdb\u8ffd\u8e2a\u9879\uff08\u8be5\u90e8\u4ef6\u91cd\u70b9\u5173\u6ce8\u70b9\uff09",
+   "options": "\u5df2\u6539\u5584\u9879-\u65b0\u53d1\n\u5df2\u6539\u5584\u9879-\u518d\u53d1\n\u5f85\u6539\u8fdb\u9879-\u8ddf\u8e2a\n\u6279\u91cf\u9690\u60a3-\u5173\u8054\u95ed\u73af"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-03 08:21:42.915021",
+ "modified": "2026-09-07 09:10:10.670262",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Service Part Item",

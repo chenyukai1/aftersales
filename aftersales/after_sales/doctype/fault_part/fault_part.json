@@ -29,7 +29,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-01 11:19:17.113393",
+ "modified": "2026-09-07 09:08:33.594703",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Fault Part",
@@ -83,5 +83,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
+ "title_field": "part_name",
  "track_changes": 1
 }

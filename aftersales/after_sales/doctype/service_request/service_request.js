@@ -5,6 +5,13 @@ frappe.ui.form.on("Service Request", {
 		if (frm.is_new() && !frm.doc.feedback_date) {
 			frm.set_value("feedback_date", frappe.datetime.get_today());
 		}
+		// 故障字典三级联动：大类 → 部件 → 现象（逐级过滤，点选代替手打）
+		frm.set_query("fault_part", function () {
+			return { filters: frm.doc.fault_category ? { category: frm.doc.fault_category } : {} };
+		});
+		frm.set_query("fault_phenomenon", function () {
+			return { filters: frm.doc.fault_part ? { part: frm.doc.fault_part } : {} };
+		});
 		// 已提交且未创建闭环时，可人工发起质量闭环（覆盖非批量隐患场景）
 		if (frm.doc.docstatus === 1) {
 			frm.add_custom_button(__("发起质量闭环"), function () {
@@ -64,6 +71,10 @@ frappe.ui.form.on("Service Request", {
 				if (v.manufacture_date) {
 					frm.set_value("manufacture_month", v.manufacture_date.substring(0, 7));
 				}
+				// 特殊配件跟踪（#37）：命中特殊配件登记单自动带出，未命中显示"无特殊配件"
+				if (v.special_part_tracking && !frm.doc.special_part_tracking) {
+					frm.set_value("special_part_tracking", v.special_part_tracking);
+				}
 				// 车辆带出客户/对接人（空才覆盖），再联动收货信息
 				if (v.customer && !frm.doc.customer) {
 					frm.set_value("customer", v.customer);
@@ -83,6 +94,16 @@ frappe.ui.form.on("Service Request", {
 		if (!frm.doc.customer) return;
 		// 客户主档带出对接人，并预填配件行收件信息（空行才填）
 		fill_ship_from_customer(frm, frm.doc.customer);
+	},
+
+	// 故障字典级联：更换大类时清空其下部件/现象；更换部件时清空现象
+	fault_category: function (frm) {
+		frm.set_value("fault_part", null);
+		frm.set_value("fault_phenomenon", null);
+	},
+
+	fault_part: function (frm) {
+		frm.set_value("fault_phenomenon", null);
 	},
 
 	feedback_date: function (frm) {

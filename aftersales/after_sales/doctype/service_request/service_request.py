@@ -16,6 +16,7 @@ from frappe.utils import today, getdate, add_days, formatdate
 class ServiceRequest(Document):
     def validate(self):
         self.calc_vehicle_fields()
+        self.calc_fault_dict_fields()
         self.calc_stats()
         self.calc_parts()
 
@@ -133,7 +134,7 @@ class ServiceRequest(Document):
             {"chassis_no": self.chassis_no},
             [
                 "hangcha_model", "special_config", "delivery_date",
-                "shibeida_model", "customer", "customer_contact",
+                "shibeida_model", "customer", "customer_contact", "serial_no",
             ],
             as_dict=True,
         )
@@ -148,6 +149,11 @@ class ServiceRequest(Document):
                 self.customer = vehicle.customer
             if vehicle.customer_contact and not self.contact_person:
                 self.contact_person = vehicle.customer_contact
+            # 特殊配件跟踪（模板 #37）：铭牌车辆命中特殊配件登记 → 自动带出登记单状态
+            if not self.special_part_tracking:
+                self.special_part_tracking = self._fetch_special_part_tracking(
+                    vehicle.serial_no, self.chassis_no
+                )
         # 出厂天数 & 波段
         if self.manufacture_date:
             days = (getdate(today()) - getdate(self.manufacture_date)).days
@@ -161,6 +167,54 @@ class ServiceRequest(Document):
         # 出厂月份
         if self.manufacture_date:
             self.manufacture_month = formatdate(self.manufacture_date, "YYYY-MM")
+
+    def _fetch_special_part_tracking(self, serial_no, chassis_no):
+        """查特殊配件登记表：序列号或铭牌命中 → 返回「订单号｜状态」，否则空。"""
+        for field, val in (("serial_no", serial_no), ("chassis_no", chassis_no)):
+            if not val:
+                continue
+            reg = frappe.db.get_value(
+                "Special Part Registration",
+                {field: val},
+                ["order_no", "tracking_status"],
+                as_dict=True,
+            )
+            if reg:
+                return f"{reg.order_no}｜{reg.tracking_status}"
+        return ""
+
+    def calc_fault_dict_fields(self):
+        """故障字典三级联动（大类→部件→现象），与前端点选互补：
+        - 选了现象：自动带出所属部件、所属大类（防错配）
+        - 选了部件：自动带出所属大类
+        - 现象文本自动拼进故障描述，供全过程跟踪记录
+        """
+        if not self.fault_phenomenon:
+            # 仅选了部件 → 尝试补全大类
+            if self.fault_part:
+                part_doc = frappe.db.get_value(
+                    "Fault Part", self.fault_part, "category", as_dict=False
+                )
+                if part_doc and not self.fault_category:
+                    self.fault_category = part_doc
+            return
+        ph = frappe.db.get_value(
+            "Fault Phenomenon",
+            self.fault_phenomenon,
+            ["phenomenon", "part", "category"],
+            as_dict=True,
+        )
+        if not ph:
+            return
+        # 自动回填部件/大类（前端已级联，防遗漏）
+        if ph.part and not self.fault_part:
+            self.fault_part = ph.part
+        if ph.category and not self.fault_category:
+            self.fault_category = ph.category
+        # 现象文本拼入故障描述首行（仅当描述尚未包含该现象）
+        if ph.phenomenon and (not self.fault_description or ph.phenomenon not in self.fault_description):
+            base = self.fault_description or ""
+            self.fault_description = (f"现象：{ph.phenomenon}。" + base) if base else f"现象：{ph.phenomenon}。"
 
     def calc_stats(self):
         # 索赔月份 / 周数（按反馈日期）
@@ -247,7 +301,7 @@ def fetch_vehicle_info(chassis_no):
         {"chassis_no": chassis_no},
         [
             "hangcha_model", "shibeida_model", "special_config", "delivery_date",
-            "customer", "customer_contact",
+            "customer", "customer_contact", "serial_no",
         ],
         as_dict=True,
     )
@@ -264,7 +318,31 @@ def fetch_vehicle_info(chassis_no):
         "after_sale_band": band,
         "customer": row.customer or "",
         "customer_contact": row.customer_contact or "",
+        # 特殊配件跟踪（#37）：命中特殊配件登记单自动带出
+        "special_part_tracking": _fetch_spr_tracking(row.serial_no, chassis_no),
     }
+
+
+@frappe.whitelist()
+def fetch_special_part_tracking(serial_no, chassis_no):
+    """前端独立调用：按序列号/铭牌查特殊配件登记状态。"""
+    return {"found": True, "tracking": _fetch_spr_tracking(serial_no, chassis_no)}
+
+
+def _fetch_spr_tracking(serial_no, chassis_no):
+    """查 Special Part Registration：序列号或铭牌命中 → 「订单号｜状态」，否则空。"""
+    for field, val in (("serial_no", serial_no), ("chassis_no", chassis_no)):
+        if not val:
+            continue
+        reg = frappe.db.get_value(
+            "Special Part Registration",
+            {field: val},
+            ["order_no", "tracking_status"],
+            as_dict=True,
+        )
+        if reg:
+            return f"{reg.order_no}｜{reg.tracking_status}"
+    return ""
 
 
 @frappe.whitelist()

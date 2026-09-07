@@ -132,6 +132,7 @@ def create_fault_part():
             _field("category", "所属大类", "Link", options="Fault Category", reqd=1, in_list_view=1),
         ],
         naming_rule="Set by user",
+        title_field="part_name",
         search_fields="part_name",
     )
 
@@ -145,6 +146,7 @@ def create_fault_phenomenon():
             _field("category", "所属大类", "Link", options="Fault Category", in_list_view=1),
         ],
         autoname="FPH-.#####",
+        title_field="phenomenon",
         search_fields="phenomenon, part",
     )
 
@@ -156,7 +158,7 @@ def create_after_sales_option():
         [
             _field(
                 "option_type", "选项类别", "Select",
-                options="服务类型\n售后类型\n处理措施\nERP录入\nOA状态\n坏件寄回\n状态客户\n状态部门\n发货方式\n索赔需求\n客户回访\n售后波段",
+                options="服务类型\n售后类型\n处理措施\nERP录入\nOA状态\n坏件寄回\n状态客户\n状态部门\n发货方式\n索赔需求\n客户回访\n售后波段\n改进追踪项",
                 reqd=1, in_list_view=1,
             ),
             _field("option_value", "选项值", reqd=1, in_list_view=1),
@@ -196,6 +198,7 @@ def create_service_part_item():
             _field("erp_new_code", "新配件编码录ERP", read_only=1),
             # 坏件追回
             _field("section_recall", "坏件追回", "Section Break"),
+            _field("improvement_item", "改进追踪项（该部件重点关注点）", "Select", in_list_view=1),
             _field("return_focus", "坏件需要重点关注"),
             _field("bad_part_arrived", "坏件到货日期", "Date"),
             _field("returned_to_factory", "退回工厂日期", "Date"),
@@ -252,6 +255,11 @@ def create_service_request():
                 reqd=1, in_list_view=1, default="普通索赔",
             ),
             _field("fault_description", "故障描述（全过程跟踪）", "Text Editor"),
+            # 故障字典三级定位（模板 #11 大类 / #12 部件 / #15 现象：点选代替手打，喂质量闭环定性）
+            _field("section_fault_dict", "故障定位（点选三级字典，自动带出描述）", "Section Break"),
+            _field("fault_category", "故障部件大类", "Link", options="Fault Category", in_list_view=1),
+            _field("fault_part", "故障部件", "Link", options="Fault Part", in_list_view=1),
+            _field("fault_phenomenon", "故障现象", "Link", options="Fault Phenomenon", in_list_view=1),
             _field(
                 "handling_action", "处理措施", "Select",
                 options="索赔配件\n赔钱\n赠送",
@@ -557,6 +565,7 @@ def after_install():
     sync_spare_part_erp_item()
     sync_vehicle_delivery_customer()
     sync_simplify_form()
+    sync_fault_dict_fields()
     create_dn_custom_field()
     create_old_part_recall_reminder()
     create_old_part_recall()
@@ -588,6 +597,7 @@ FIELD_OPTION_MAP = {
     "Service Part Item": {
         "claim_requirement": "索赔需求",
         "ship_method": "发货方式",
+        "improvement_item": "改进追踪项",
     },
     "Spare Part": {
         "claim_requirement": "索赔需求",
@@ -666,6 +676,56 @@ def sync_service_part_item_attachments():
     if added:
         dt.save(ignore_permissions=True)
         frappe.db.commit()
+
+
+def sync_fault_dict_fields():
+    """为既有环境补充故障字典三级定位字段 + 配件行改进追踪项（幂等，可重复执行）。
+
+    新装环境在 create_service_request / create_service_part_item 定义中已含这些字段；
+    本函数仅作用于已存在的 DocType（开发环境升级场景）。
+    bench --site dev.localhost execute "frappe.get_attr('aftersales.after_sales.setup.sync_fault_dict_fields')()"
+    """
+    targets = {
+        "Service Request": [
+            {"fieldname": "section_fault_dict", "label": "故障定位（点选三级字典，自动带出描述）", "fieldtype": "Section Break"},
+            {"fieldname": "fault_category", "label": "故障部件大类", "fieldtype": "Link", "options": "Fault Category", "in_list_view": 1},
+            {"fieldname": "fault_part", "label": "故障部件", "fieldtype": "Link", "options": "Fault Part", "in_list_view": 1},
+            {"fieldname": "fault_phenomenon", "label": "故障现象", "fieldtype": "Link", "options": "Fault Phenomenon", "in_list_view": 1},
+        ],
+        "Service Part Item": [
+            {"fieldname": "improvement_item", "label": "改进追踪项（该部件重点关注点）", "fieldtype": "Select", "in_list_view": 1},
+        ],
+    }
+    for doctype, fields in targets.items():
+        if not frappe.db.exists("DocType", doctype):
+            continue
+        dt = frappe.get_doc("DocType", doctype)
+        existing = {f.fieldname for f in dt.fields}
+        added = False
+        for f in fields:
+            if f["fieldname"] not in existing:
+                dt.append("fields", f)
+                added = True
+        if added:
+            dt.save(ignore_permissions=True)
+    # 既有字典表补 title_field（Link 下拉显示可读名称而非 hash）
+    title_updates = {"Fault Part": "part_name", "Fault Phenomenon": "phenomenon"}
+    for doctype, title_field in title_updates.items():
+        if not frappe.db.exists("DocType", doctype):
+            continue
+        dt = frappe.get_doc("DocType", doctype)
+        if dt.get("title_field") != title_field:
+            dt.title_field = title_field
+            dt.save(ignore_permissions=True)
+    # After Sales Option 类别下拉补「改进追踪项」（既有环境升级）
+    if frappe.db.exists("DocType", "After Sales Option"):
+        opt_dt = frappe.get_doc("DocType", "After Sales Option")
+        for f in opt_dt.fields:
+            if f.fieldname == "option_type" and "改进追踪项" not in (f.options or ""):
+                f.options = (f.options or "").rstrip("\n") + "\n改进追踪项"
+                opt_dt.save(ignore_permissions=True)
+                break
+    frappe.db.commit()
 
 
 # 登记表单"少人工填写"字段属性表：doctype -> {fieldname: {attr: value}}

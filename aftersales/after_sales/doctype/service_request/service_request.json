@@ -34,7 +34,11 @@
   "claim_month",
   "claim_week",
   "manufacture_month",
-  "customer_callback"
+  "customer_callback",
+  "section_fault_dict",
+  "fault_category",
+  "fault_part",
+  "fault_phenomenon"
  ],
  "fields": [
   {
@@ -208,12 +212,38 @@
    "fieldtype": "Select",
    "label": "\u5ba2\u6237\u56de\u8bbf",
    "options": "\u5f85\u56de\u8bbf\n\u5df2\u56de\u8bbf"
+  },
+  {
+   "fieldname": "section_fault_dict",
+   "fieldtype": "Section Break",
+   "label": "\u6545\u969c\u5b9a\u4f4d\uff08\u70b9\u9009\u4e09\u7ea7\u5b57\u5178\uff0c\u81ea\u52a8\u5e26\u51fa\u63cf\u8ff0\uff09"
+  },
+  {
+   "fieldname": "fault_category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u6545\u969c\u90e8\u4ef6\u5927\u7c7b",
+   "options": "Fault Category"
+  },
+  {
+   "fieldname": "fault_part",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u6545\u969c\u90e8\u4ef6",
+   "options": "Fault Part"
+  },
+  {
+   "fieldname": "fault_phenomenon",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u6545\u969c\u73b0\u8c61",
+   "options": "Fault Phenomenon"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-03 08:21:39.055337",
+ "modified": "2026-09-07 09:08:29.340825",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "Service Request",
