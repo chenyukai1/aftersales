@@ -29,7 +29,8 @@ class ServiceRequest(Document):
         self.update_oa_status()
 
     def update_oa_status(self):
-        """审批通过（on_submit）后 OA 状态联动：特殊申请→Y（OA 流程完成）；其余→N。"""
+        """审批通过（on_submit）后 OA 状态联动：特殊申请→Y（OA 流程完成）；其余→N。
+        同时向预留的外部系统接口推送「审批通过」事件（未配置=mock 不外发）。"""
         try:
             new_status = "Y" if self.service_type == "特殊申请" else "N"
             if frappe.db.get_value("Service Request", self.name, "oa_status") != new_status:
@@ -37,6 +38,24 @@ class ServiceRequest(Document):
                 frappe.db.commit()
         except Exception:
             frappe.log_error(f"OA 状态联动失败：{self.name}", "after_sales.oa")
+        # 外部系统事件：审批通过（预留接口，mock 友好）
+        try:
+            from aftersales.after_sales.notify import send_outbound
+
+            send_outbound(
+                "service_request.approved",
+                payload={
+                    "service_type": self.service_type,
+                    "customer": self.customer,
+                    "chassis_no": self.chassis_no,
+                    "fault_summary": (self.fault_description or "")[:200],
+                    "part_lines": len(self.parts or []),
+                },
+                doctype="Service Request",
+                name=self.name,
+            )
+        except Exception:
+            frappe.log_error(f"外部事件推送失败：{self.name}", "after_sales.outbound")
 
     def check_recurrence(self):
         """改进-再发比对：命中改进记录且在改进日期后出厂 → 记录评论提醒。"""
@@ -345,9 +364,30 @@ def _fetch_spr_tracking(serial_no, chassis_no):
     return ""
 
 
+# 发货区域关键词识别（mock 规则：Address.state 缺失时兜底。可后续改为可维护字典）
+REGION_KEYWORDS = [
+    ("浙江", ["浙江", "杭州", "宁波", "余姚", "慈溪", "温州", "嘉兴", "平湖", "湖州", "绍兴", "金华", "衢州", "台州", "丽水", "舟山"]),
+    ("江苏", ["江苏", "南京", "苏州", "无锡", "常州", "南通", "扬州", "镇江", "泰州", "徐州", "盐城", "连云港", "淮安", "宿迁"]),
+    ("江西", ["江西", "南昌", "九江", "赣州", "吉安", "上饶", "抚州", "宜春", "景德镇", "萍乡", "新余", "鹰潭"]),
+    ("上海", ["上海", "沪"]),
+    ("安徽", ["安徽", "合肥", "芜湖", "蚌埠", "马鞍山", "安庆"]),
+]
+
+
+def _guess_region(address):
+    """按地址文本关键词识别发货区域（省份）。未命中返回空串。"""
+    if not address:
+        return ""
+    for region, keywords in REGION_KEYWORDS:
+        for kw in keywords:
+            if kw in address:
+                return region
+    return ""
+
+
 @frappe.whitelist()
 def fetch_customer_ship_info(customer):
-    """客户选定后带出默认对接人 / 收件人 / 电话 / 地址（来源：客户主档关联的
+    """客户选定后带出默认对接人 / 收件人 / 电话 / 地址 / 发货区域（来源：客户主档关联的
     主联系人 Contact 与主地址 Address），供登记主表对接人与配件行发货信息预填。"""
     out = {
         "found": False,
@@ -356,6 +396,7 @@ def fetch_customer_ship_info(customer):
         "recipient": "",
         "phone": "",
         "address": "",
+        "region": "",
     }
     if not customer:
         return out
@@ -402,6 +443,8 @@ def fetch_customer_ship_info(customer):
                 x for x in [a.address_line1, a.address_line2, a.city or a.county, a.state] if x
             )
             out["address"] = addr
+            # 发货区域：优先 Address.state（省份），缺省按地址关键词识别
+            out["region"] = (a.state or "").strip() or _guess_region(addr)
     out["found"] = bool(out["recipient"] or out["contact_person"] or out["address"])
     return out
 

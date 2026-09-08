@@ -12,7 +12,9 @@
   "wecom_webhook",
   "enable_inapp_notify",
   "enable_wecom_notify",
-  "remark"
+  "remark",
+  "outbound_enabled",
+  "outbound_webhook"
  ],
  "fields": [
   {
@@ -53,13 +55,24 @@
    "fieldname": "remark",
    "fieldtype": "Data",
    "label": "\u5907\u6ce8"
+  },
+  {
+   "default": "0",
+   "fieldname": "outbound_enabled",
+   "fieldtype": "Check",
+   "label": "\u542f\u7528\u5916\u90e8\u63a8\u9001"
+  },
+  {
+   "fieldname": "outbound_webhook",
+   "fieldtype": "Data",
+   "label": "\u5916\u90e8\u7cfb\u7edf Webhook URL"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-01 14:35:02.716606",
+ "modified": "2026-09-08 10:24:06.251273",
  "modified_by": "Administrator",
  "module": "after_sales",
  "name": "After Sales Settings",

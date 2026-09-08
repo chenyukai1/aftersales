@@ -209,3 +209,386 @@ def import_spare_parts(path):
     frappe.db.commit()
     stats["suppliers_created"] = created_suppliers
     return stats
+
+
+# ============================================================
+# 整车发货 + 客户收货信息导入（数据底座：登记"输铭牌自动带出
+# 客户/对接人/收货信息/发货区域"依赖 Vehicle Delivery + 客户主档）
+#
+# 模板为「双 sheet」一个文件：
+#   sheet1 车辆发货：10 列，按 车架号(chassis_no) 幂等 upsert
+#   sheet2 客户收货：6 列，按 客户简称 幂等 upsert（客户/主联系人/主地址）
+# 顺序：先处理客户收货（保证客户主档存在），再处理车辆（Link 客户）。
+# 缺真实数据时模板内 mock 示例行可直接导入用于全链路演示；
+# 真实 K3/整车导出数据就位后，替换示例行再次导入即可覆盖/新增。
+# ============================================================
+
+VEHICLE_COLS = [
+    "发货日期", "杭叉型号", "序列号", "车架号", "事倍达型号",
+    "货叉规格", "颜色", "特殊配置", "购车客户", "对接人",
+]
+CUSTOMER_SHIP_COLS = ["客户简称", "对接人", "电话", "收货地址", "省份"]
+
+# 列名别名（大小写不敏感，兼容不同导出表头）
+VEHICLE_ALIASES = {
+    "delivery_date": ["发货日期", "交付日期", "提车日期", "出厂日期"],
+    "hangcha_model": ["杭叉型号", "型号", "车型", "整车型号"],
+    "serial_no": ["序列号", "出厂编号", "整机编号", "serialno"],
+    "chassis_no": ["车架号", "铭牌", "底盘号", "chassis"],
+    "shibeida_model": ["事倍达型号", "销售型号", "自编号"],
+    "fork_size": ["货叉规格", "货叉尺寸", "属具规格"],
+    "product_color": ["颜色", "车身颜色", "涂装颜色"],
+    "special_config": ["特殊配置", "选装配置", "特殊改装"],
+    "customer": ["购车客户", "客户", "客户简称", "终端客户", "买方"],
+    "customer_contact": ["对接人", "购车对接人", "联系人", "客户联系人"],
+}
+CUSTOMER_ALIASES = {
+    "customer": ["客户简称", "客户", "客户名称", "终端客户"],
+    "contact_person": ["对接人", "联系人", "收件人", "主联系人"],
+    "phone": ["电话", "手机", "手机号", "联系电话"],
+    "address": ["收货地址", "地址", "地址行", "寄件地址", "详细地址"],
+    "state": ["省份", "省", "区域", "发货区域", "地区"],
+}
+
+# mock 示例车辆行（前 10 台与演示种子一致 → 导入为 skipped 幂等验证；
+# 后 2 台为新增演示车，导入后 created，指向新客户以演示"自动创建客户"）
+VEHICLE_SAMPLE = [
+    # (发货日期, 杭叉型号, 序列号, 车架号, 事倍达型号, 货叉规格, 颜色, 特殊配置, 购车客户, 对接人)
+    ("2026-01-15", "CPD20", "SN-20260115001", "HC-2026-0115-001", "SBD-20B", "920×100×35", "黄色", "无", "零星客户", "大程"),
+    ("2026-02-03", "CPD30", "SN-20260203002", "HC-2026-0203-002", "SBD-30E", "1070×122×40", "黄色", "侧移器", "吉安吉翔/江西雷翼", "刘清华"),
+    ("2026-02-27", "CPD35", "SN-20260227003", "HC-2026-0227-003", "SBD-35T", "1220×150×45", "灰色", "加长货叉(1500mm)", "吉安吉翔/江西雷翼", "刘清华"),
+    ("2026-03-18", "CPD25", "SN-20260318004", "HC-2026-0318-004", "SBD-25L", "1100×125×40", "红色", "无", "零星客户", "大程"),
+    ("2026-04-09", "CPD50", "SN-20260409005", "HC-2026-0409-005", "SBD-50X", "1300×160×50", "灰色", "侧移器+软包夹", "杭州杭叉电子商务有限公司", "王芳"),
+    ("2026-05-12", "CPD30", "SN-20260512006", "HC-2026-0512-006", "SBD-30E", "1070×122×40", "黄色", "挡货架", "杭州杭叉电子商务有限公司", "王芳"),
+    ("2026-06-06", "CPD20E", "SN-20260606007", "HC-2026-0606-007", "SBD-20B", "920×100×35", "蓝色", "无", "零星客户", "大程"),
+    ("2026-06-28", "CPD45", "SN-20260628008", "HC-2026-0628-008", "SBD-45T", "1250×150×45", "灰色", "双货叉", "吉安吉翔/江西雷翼", "刘清华"),
+    ("2026-07-17", "CPD30", "SN-20260717009", "HC-2026-0717-009", "SBD-30E", "1070×122×40", "黄色", "侧移器", "杭州杭叉电子商务有限公司", "王芳"),
+    ("2026-08-02", "CPD25", "SN-20260802010", "HC-2026-0802-010", "SBD-25L", "1100×125×40", "红色", "无", "零星客户", "大程"),
+    # ↓ 以下 2 台为新增演示车（导入触发 created + 客户自动创建）
+    ("2026-09-01", "CPD20", "SN-20260901011", "HC-2026-0901-011", "SBD-20B", "920×100×35", "黄色", "无", "上海沪联仓储设备有限公司", "陈国栋"),
+    ("2026-09-05", "CPD30", "SN-20260905012", "HC-2026-0905-012", "SBD-30E", "1070×122×40", "黄色", "侧移器", "嘉兴港区物流有限公司", "沈雅芳"),
+]
+
+# mock 客户收货行（前 3 个与演示种子一致 → 幂等；后 3 个新增 → 自动创建客户主档+收货）
+CUSTOMER_SHIP_SAMPLE = [
+    # (客户简称, 对接人, 电话, 收货地址, 省份)
+    ("零星客户", "大程", "13800000001", "余姚市牟山镇新东吴村兴达路1号", "浙江"),
+    ("杭州杭叉电子商务有限公司", "王芳", "13700000003", "青山湖街道科技大道88号", "浙江"),
+    ("吉安吉翔/江西雷翼", "刘清华", "13900000002", "吉州区工业园发展大道2号", "江西"),
+    ("上海沪联仓储设备有限公司", "陈国栋", "13800000011", "嘉定区安亭镇园际路88号", "上海"),
+    ("嘉兴港区物流有限公司", "沈雅芳", "13900000012", "平湖市乍浦镇中山路6号", "浙江"),
+    ("江苏常州金鹰物资有限公司", "张明华", "13700000013", "新北区龙城大道188号", "江苏"),
+]
+
+CHINA = None
+
+
+def _china():
+    global CHINA
+    if CHINA is None:
+        CHINA = frappe.db.exists("Country", "中国") and "中国" or None
+    return CHINA
+
+
+def make_vehicle_template(path):
+    """生成「整车发货+客户收货」导入模板 xlsx（双 sheet + 填写说明）。"""
+    wb = Workbook()
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="4472C4")
+    sample_fill = PatternFill("solid", fgColor="FFF2CC")
+
+    def _sheet(title, cols, samples, widths):
+        ws = wb.create_sheet(title)
+        ws.append(cols)
+        for cell in ws[1]:
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        for row in samples:
+            ws.append(list(row))
+        for r in range(2, 2 + len(samples)):
+            for cell in ws[r]:
+                cell.fill = sample_fill
+        ws.freeze_panes = "A2"
+        for col, w in zip("ABCDEFGHIJ", widths):
+            ws.column_dimensions[col].width = w
+        return ws
+
+    wb.remove(wb.active)  # 去掉默认 sheet
+    _sheet("车辆发货", VEHICLE_COLS, VEHICLE_SAMPLE, (12, 10, 16, 17, 10, 16, 8, 16, 26, 12))
+    _sheet("客户收货", CUSTOMER_SHIP_COLS, CUSTOMER_SHIP_SAMPLE, (30, 12, 13, 38, 10))
+
+    doc = wb.create_sheet("填写说明")
+    lines = [
+        ("整车发货 + 客户收货导入说明", True),
+        ("", False),
+        ("一、两个 sheet 都要保留（车辆依赖客户主档，先处理客户收货）。", False),
+        ("二、车辆发货 sheet（黄色=示例，可删除后粘贴真实整车发货数据）：", True),
+        ("  必填列：车架号（唯一，按它更新/新增车辆记录）；建议填齐：发货日期/杭叉型号/序列号/购车客户。", False),
+        ("  购车客户：填客户简称；若该客户尚未建立会自动创建（售后客户分组）。", False),
+        ("  登记时输铭牌（车架号）→ 自动带出客户/对接人/车型/出厂日期/波段等。", False),
+        ("三、客户收货 sheet（黄色=示例，可删除后粘贴真实客户联系人/收货信息）：", True),
+        ("  必填列：客户简称；其余为对接人/电话/收货地址/省份。", False),
+        ("  登记时选客户 → 自动预填收件人/电话/地址/发货区域（省份）。", False),
+        ("四、幂等：重复导入同一车架号/客户只会更新，不重复创建。", False),
+        ("五、填好后保存为 data/整车发货数据.xlsx 并执行：", False),
+        ("", False),
+        ("bench --site dev.localhost execute \"frappe.get_attr('aftersales.after_sales.import_data.import_vehicle_delivery')('/home/frappe/frappe-bench/apps/aftersales/data/整车发货数据.xlsx')\"", False),
+    ]
+    for text, bold in lines:
+        doc.append([text])
+        doc.cell(row=doc.max_row, column=1).font = Font(bold=bold)
+    doc.column_dimensions["A"].width = 110
+    wb.save(path)
+    return path
+
+
+def _ensure_customer(customer):
+    """客户不存在则自动创建（售后客户分组）。返回 (客户 name, 是否新建)。"""
+    if not customer:
+        return "", False
+    name = frappe.db.exists("Customer", {"customer_name": customer})
+    if name:
+        return name, False
+    group = "售后客户"
+    if not frappe.db.exists("Customer Group", group):
+        frappe.get_doc({"doctype": "Customer Group", "customer_group_name": group, "is_group": 0}).insert(ignore_permissions=True)
+    doc = frappe.get_doc({
+        "doctype": "Customer",
+        "customer_name": customer,
+        "customer_group": group,
+        "territory": "All Territories",
+    })
+    doc.insert(ignore_permissions=True)
+    return doc.name, True
+
+
+def _upsert_primary_contact(customer, cust_name, person, phone):
+    """幂等 upsert 主联系人，返回 (Contact name, 是否新建)。"""
+    name = frappe.db.sql(
+        """select c.name from `tabContact` c
+           inner join `tabDynamic Link` dl on dl.parent = c.name
+               and dl.parenttype = 'Contact' and dl.link_doctype = 'Customer'
+           where dl.link_name = %s and c.is_primary_contact = 1 limit 1""",
+        cust_name,
+    )
+    name = name[0][0] if name else None
+    created = False
+    if name:
+        doc = frappe.get_doc("Contact", name)
+        dirty = False
+        if person and doc.first_name != person:
+            doc.first_name = person
+            dirty = True
+        if phone and doc.mobile_no != phone:
+            doc.mobile_no = phone
+            dirty = True
+        if dirty:
+            doc.save(ignore_permissions=True)
+    else:
+        doc = frappe.get_doc({
+            "doctype": "Contact",
+            "first_name": person or customer,
+            "is_primary_contact": 1,
+            "mobile_no": phone or "",
+            "links": [{"link_doctype": "Customer", "link_name": cust_name}],
+        })
+        doc.insert(ignore_permissions=True)
+        created = True
+    # 回写 Customer 主联系人
+    if cust_name and frappe.db.get_value("Customer", cust_name, "customer_primary_contact") != doc.name:
+        frappe.db.set_value("Customer", cust_name, "customer_primary_contact", doc.name)
+    return doc.name, created
+
+
+def _upsert_primary_address(customer, cust_name, address, state):
+    """幂等 upsert 主地址（address_line1/city/state），返回 (Address name, 是否新建)。"""
+    name = frappe.db.sql(
+        """select a.name from `tabAddress` a
+           inner join `tabDynamic Link` dl on dl.parent = a.name
+               and dl.parenttype = 'Address' and dl.link_doctype = 'Customer'
+           where dl.link_name = %s and a.is_primary_address = 1 limit 1""",
+        cust_name,
+    )
+    name = name[0][0] if name else None
+    created = False
+    country = _china()
+    if name:
+        doc = frappe.get_doc("Address", name)
+        dirty = False
+        if address and doc.address_line1 != address:
+            doc.address_line1 = address
+            dirty = True
+        if state and doc.state != state:
+            doc.state = state
+            dirty = True
+        if dirty:
+            doc.save(ignore_permissions=True)
+    else:
+        # 简易：city 不单独拆列（模板地址为完整行），市从地址文本粗提取，
+        # 缺失时（直辖市/无市字样）以省份兜底，避免 Address.city 必填校验失败
+        doc = frappe.get_doc({
+            "doctype": "Address",
+            "address_title": customer,
+            "address_type": "Shipping",
+            "address_line1": address or "",
+            "city": _guess_city(address) or (state or "其他"),
+            "state": state or "",
+            "country": country,
+            "is_primary_address": 1,
+            "links": [{"link_doctype": "Customer", "link_name": cust_name}],
+        })
+        doc.insert(ignore_permissions=True)
+        created = True
+    if cust_name and frappe.db.get_value("Customer", cust_name, "customer_primary_address") != doc.name:
+        frappe.db.set_value("Customer", cust_name, "customer_primary_address", doc.name)
+    return doc.name, created
+
+
+def _guess_city(address):
+    """从地址文本粗提取市级（mock 规则，真实数据建议含城市列或手工维护）。"""
+    if not address:
+        return ""
+    for token in ("省", "市"):
+        idx = address.rfind(token)
+        if idx > 0:
+            return address[: idx + 1]
+    return ""
+
+
+def _neq(current, candidate):
+    """字段值归一化比较（Date 字段读回 date 对象 vs 导入 isoformat 字符串）。"""
+    if current == candidate:
+        return False
+    if current is None or candidate is None:
+        return True
+    from datetime import date, datetime
+
+    if isinstance(current, (date, datetime)) and isinstance(candidate, str):
+        return current.isoformat() != candidate
+    if isinstance(candidate, (date, datetime)) and isinstance(current, str):
+        return candidate.isoformat() != current
+    return True
+
+
+def import_vehicle_delivery(path):
+    """批量导入「整车发货+客户收货」（双 sheet，幂等）。返回统计 dict。"""
+    stats = {"created": 0, "updated": 0, "skipped": 0, "customers_created": [], "errors": []}
+    try:
+        wb = load_workbook(path, data_only=True)
+    except Exception as e:
+        return {"error": f"无法打开 Excel：{e}", **stats}
+    sheets = wb.sheetnames
+    has_vehicle = "车辆发货" in sheets
+    has_customer = "客户收货" in sheets
+    if not has_vehicle and not has_customer:
+        return {"error": f"Excel 需含「车辆发货」或「客户收货」sheet，实际：{sheets}", **stats}
+
+    def _headers(ws):
+        rows = list(ws.iter_rows(values_only=True))
+        if len(rows) < 2:
+            return [], []
+        headers = [str(h).strip().lower() if h is not None else "" for h in rows[0]]
+        return rows, headers
+
+    def _map_cols(headers, aliases):
+        col_idx = {}
+        for field, alias_list in aliases.items():
+            lower = {a.lower() for a in alias_list}
+            for i, h in enumerate(headers):
+                if h in lower:
+                    col_idx[field] = i
+                    break
+        return col_idx
+
+    # ---------- 1) 客户收货（先处理，保证客户主档/收货信息就绪） ----------
+    if has_customer:
+        ws = wb["客户收货"]
+        rows, headers = _headers(ws)
+        col_idx = _map_cols(headers, CUSTOMER_ALIASES)
+        if "customer" in col_idx:
+            for r in rows[1:]:
+                if not r or all(c is None or str(c).strip() == "" for c in r):
+                    continue
+                def _cell(field):
+                    i = col_idx.get(field)
+                    return "" if i is None or i >= len(r) or r[i] is None else str(r[i]).strip()
+                customer = _cell("customer")
+                if not customer:
+                    stats["skipped"] += 1
+                    continue
+                cust_name, c_created = _ensure_customer(customer)
+                if c_created:
+                    stats["customers_created"].append(customer)
+                person = _cell("contact_person")
+                phone = _cell("phone")
+                address = _cell("address")
+                state = _cell("state")
+                _upsert_primary_contact(customer, cust_name, person, phone)
+                _upsert_primary_address(customer, cust_name, address, state)
+        else:
+            stats["errors"].append("客户收货 sheet 未找到客户简称列，已跳过")
+
+    # ---------- 2) 车辆发货 ----------
+    if has_vehicle:
+        ws = wb["车辆发货"]
+        rows, headers = _headers(ws)
+        col_idx = _map_cols(headers, VEHICLE_ALIASES)
+        if "chassis_no" not in col_idx:
+            stats["errors"].append("车辆发货 sheet 未找到车架号列，已跳过")
+        else:
+            for r in rows[1:]:
+                if not r or all(c is None or str(c).strip() == "" for c in r):
+                    continue
+                def _cell(field):
+                    i = col_idx.get(field)
+                    return "" if i is None or i >= len(r) or r[i] is None else str(r[i]).strip()
+                chassis = _cell("chassis_no")
+                if not chassis:
+                    stats["skipped"] += 1
+                    continue
+                customer = _cell("customer")
+                cust_name, _ = _ensure_customer(customer) if customer else ("", False)
+                contact = _cell("customer_contact")
+                date_val = r[col_idx["delivery_date"]] if col_idx.get("delivery_date") is not None and col_idx["delivery_date"] < len(r) else None
+                delivery_date = None
+                if date_val is not None:
+                    from datetime import datetime, date as _date
+                    if isinstance(date_val, datetime):
+                        delivery_date = date_val.date().isoformat()
+                    elif isinstance(date_val, _date):
+                        delivery_date = date_val.isoformat()
+                    else:
+                        s = str(date_val).strip()
+                        delivery_date = s if s else None
+                updates = {
+                    "delivery_date": delivery_date,
+                    "hangcha_model": _cell("hangcha_model") or None,
+                    "serial_no": _cell("serial_no") or None,
+                    "shibeida_model": _cell("shibeida_model") or None,
+                    "fork_size": _cell("fork_size") or None,
+                    "product_color": _cell("product_color") or None,
+                    "special_config": _cell("special_config") or None,
+                    "customer": cust_name or None,
+                    "customer_contact": contact or None,
+                }
+                existing = frappe.db.exists("Vehicle Delivery", {"chassis_no": chassis})
+                if existing:
+                    doc = frappe.get_doc("Vehicle Delivery", existing)
+                    changed = False
+                    for f, v in updates.items():
+                        if v is not None and _neq(doc.get(f), v):
+                            doc.set(f, v)
+                            changed = True
+                    if changed:
+                        doc.save(ignore_permissions=True)
+                        stats["updated"] += 1
+                    else:
+                        stats["skipped"] += 1
+                else:
+                    data = {"doctype": "Vehicle Delivery", "chassis_no": chassis}
+                    data.update({f: v for f, v in updates.items() if v is not None})
+                    frappe.get_doc(data).insert(ignore_permissions=True)
+                    stats["created"] += 1
+    frappe.db.commit()
+    return stats

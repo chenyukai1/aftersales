@@ -195,9 +195,12 @@ function fill_ship_from_customer(frm, customer) {
 					if (!row.address && info.address) {
 						frappe.model.set_value(row.doctype, row.name, "address", info.address);
 					}
+					if (!row.ship_region && info.region) {
+						frappe.model.set_value(row.doctype, row.name, "ship_region", info.region);
+					}
 				});
 			}
-			frappe.show_alert({ message: "已带出客户收货信息（对接人/收件人/电话/地址）", indicator: "green" });
+			frappe.show_alert({ message: "已带出客户收货信息（对接人/收件人/电话/地址/发货区域）", indicator: "green" });
 		},
 	});
 }

@@ -74,3 +74,56 @@ def _wecom(webhook, subject, message, doctype, name):
             frappe.log_error(f"企微推送失败: {resp.status_code} {resp.text[:200]}", "after_sales.notify")
     except Exception as e:
         frappe.log_error(f"企微推送异常: {e}", "after_sales.notify")
+
+
+# ============================================================
+# 外部系统接口（预留）：OA / 采购 / ERP 对接统一出口
+# ============================================================
+OUTBOUND_EVENTS = (
+    "service_request.approved",   # 售后登记审批通过（OA 状态已回写）
+    "delivery_note.created",       # M1 自动出库单已生成
+    "claim_list.generated",        # M3 供应商索赔清单已生成
+)
+
+
+def send_outbound(event, payload=None, doctype=None, name=None):
+    """向外部系统推送业务事件（预留接口，mock 友好）。
+
+    配置 After Sales Settings → 「外部系统接口（预留）」：
+      outbound_enabled 勾选 + outbound_webhook 填接收地址 → 启用真实推送；
+      否则 = mock 模式（直接返回，不发任何请求，不影响现有流程）。
+
+    payload 建议传 dict（单据摘要），由接收方系统按 event 解析。
+    """
+    st = _settings()
+    enabled = bool(st and st.get("outbound_enabled") and st.get("outbound_webhook"))
+    if not enabled:
+        # mock 模式：仅返回待推送内容摘要，便于调试，不外发
+        return {
+            "mock": True,
+            "event": event,
+            "doctype": doctype,
+            "name": name,
+            "payload": payload or {},
+            "hint": "After Sales Settings 勾选「启用外部推送」并填 Webhook URL 后自动转为真实推送",
+        }
+    body = {
+        "source": "aftersales",
+        "event": event,
+        "doctype": doctype or "",
+        "name": name or "",
+        "payload": payload or {},
+        "ts": frappe.utils.now_datetime().isoformat(),
+    }
+    try:
+        resp = requests.post(st.outbound_webhook, json=body, timeout=10)
+        ok = resp.status_code < 300
+        if not ok:
+            frappe.log_error(
+                f"外部推送失败 event={event} status={resp.status_code} resp={resp.text[:200]}",
+                "after_sales.outbound",
+            )
+        return {"ok": ok, "status": resp.status_code, "event": event}
+    except Exception as e:
+        frappe.log_error(f"外部推送异常 event={event}: {e}", "after_sales.outbound")
+        return {"ok": False, "error": str(e), "event": event}

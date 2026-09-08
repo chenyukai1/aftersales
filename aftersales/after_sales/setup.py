@@ -566,6 +566,7 @@ def after_install():
     sync_vehicle_delivery_customer()
     sync_simplify_form()
     sync_fault_dict_fields()
+    sync_settings_outbound_fields()
     create_dn_custom_field()
     create_old_part_recall_reminder()
     create_old_part_recall()
@@ -725,6 +726,30 @@ def sync_fault_dict_fields():
                 f.options = (f.options or "").rstrip("\n") + "\n改进追踪项"
                 opt_dt.save(ignore_permissions=True)
                 break
+    frappe.db.commit()
+
+
+def sync_settings_outbound_fields():
+    """为既有环境补 After Sales Settings「外部系统接口（预留）」区（幂等，可重复执行）。
+
+    新装环境在 create_after_sales_settings 定义中已含这些字段；本函数仅用于开发环境升级。
+    bench --site dev.localhost execute "frappe.get_attr('aftersales.after_sales.setup.sync_settings_outbound_fields')()"
+    """
+    if not frappe.db.exists("DocType", "After Sales Settings"):
+        return
+    dt = frappe.get_doc("DocType", "After Sales Settings")
+    existing = {f.fieldname for f in dt.fields}
+    added = False
+    for f in [
+        {"fieldname": "section_outbound", "label": "外部系统接口（预留：OA/采购/ERP 对接）", "fieldtype": "Section Break"},
+        {"fieldname": "outbound_enabled", "label": "启用外部推送", "fieldtype": "Check", "help": "开启后业务事件(审批通过/出库/索赔清单等)将 POST 到下方 Webhook"},
+        {"fieldname": "outbound_webhook", "label": "外部系统 Webhook URL", "fieldtype": "Data", "help": "预留接口：填入 OA/采购等系统接收地址，事件 JSON 自动推送。留空/未勾选=mock 模式不外发"},
+    ]:
+        if f["fieldname"] not in existing:
+            dt.append("fields", f)
+            added = True
+    if added:
+        dt.save(ignore_permissions=True)
     frappe.db.commit()
 
 
@@ -993,6 +1018,9 @@ def create_after_sales_settings():
                 _field("wecom_webhook", "企业微信 Webhook URL", "Data", help="配置后追回提醒/批量隐患/闭环通知将推送到企微群"),
                 _field("enable_inapp_notify", "系统内通知", "Check", default=1),
                 _field("enable_wecom_notify", "企业微信推送", "Check"),
+                _field("section_outbound", "外部系统接口（预留：OA/采购/ERP 对接）", "Section Break"),
+                _field("outbound_enabled", "启用外部推送", "Check", help="开启后业务事件(审批通过/出库/索赔清单等)将 POST 到下方 Webhook"),
+                _field("outbound_webhook", "外部系统 Webhook URL", "Data", help="预留接口：填入 OA/采购等系统接收地址，事件 JSON 自动推送。留空/未勾选=mock 模式不外发"),
                 _field("remark", "备注"),
             ],
             "permissions": [
