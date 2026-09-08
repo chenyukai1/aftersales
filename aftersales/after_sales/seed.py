@@ -473,11 +473,12 @@ def _seed_mock_items():
             frappe.db.set_value("Spare Part", {"k3_code": code}, "erp_item", code)
 
 
-# 演示用户（售后/采购/质量部，密码均为 demo12345）
+# 演示用户（售后/采购/质量/主管，密码均为 demo12345）
 DEMO_USERS = [
     ("shouhou@demo.local", "售后演示", "After Sales"),
     ("caigou@demo.local", "采购演示", "Purchase User"),
     ("zhiliang@demo.local", "质量演示", "Quality Manager"),
+    ("zhuguan@demo.local", "主管演示(审批)", "After Sales Manager"),
 ]
 
 

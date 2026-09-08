@@ -11,15 +11,18 @@ from frappe.utils import today
 
 # 默认出库仓库（零配件仓）；可在「售后设置 After Sales Settings」中调整
 DEFAULT_PRICE_LIST = "Standard Selling"
+# 兜底默认仓（系统内置标准仓全名；设置单配置无效时回退此值）
+FALLBACK_WAREHOUSE = "101 101零配件仓1 - 事倍达"
 
 
 def _get_warehouse():
-    """从售后设置读取默认出库仓库（未配置时回退默认）。"""
+    """从售后设置读取默认出库仓库；未配置或配置的仓库不存在时回退兜底默认。"""
+    wh = ""
     if frappe.db.exists("After Sales Settings"):
-        wh = frappe.get_single("After Sales Settings").get("delivery_warehouse")
-        if wh:
-            return wh
-    return "101 101零配件仓1 - 事倍达"
+        wh = frappe.get_single("After Sales Settings").get("delivery_warehouse") or ""
+    if wh and frappe.db.exists("Warehouse", wh):
+        return wh
+    return FALLBACK_WAREHOUSE
 
 
 class ClaimOrder(Document):

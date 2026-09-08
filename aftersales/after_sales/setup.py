@@ -1013,7 +1013,7 @@ def create_after_sales_settings():
             "istable": 0,
             "fields": [
                 _field("section_outbound", "出库设置", "Section Break"),
-                _field("delivery_warehouse", "默认出库仓库", "Link", options="Warehouse", default="101 零配件仓1 - 事倍达"),
+                _field("delivery_warehouse", "默认出库仓库", "Link", options="Warehouse", default="101 101零配件仓1 - 事倍达"),
                 _field("section_notify", "通知渠道", "Section Break"),
                 _field("wecom_webhook", "企业微信 Webhook URL", "Data", help="配置后追回提醒/批量隐患/闭环通知将推送到企微群"),
                 _field("enable_inapp_notify", "系统内通知", "Check", default=1),
