@@ -461,3 +461,42 @@ def fetch_part_info(part_code):
     if not row:
         return {"found": False, "message": "未找到该编码的配件，请先在配件主档维护（或提示完善配件价格表）"}
     return {"found": True, "part_name": row.part_name, "supplier": row.supplier, "claim_requirement": row.claim_requirement}
+
+
+# ============================================================
+# 数据权限细化：业务员只看自己登记的单，主管/管理员看全部
+# （经 hooks doc_events 注册，对列表/表单/报表统一生效）
+# ============================================================
+FULL_ACCESS_ROLES = {"After Sales Manager", "System Manager", "Administrator"}
+
+
+def _has_full_access(user):
+    return bool(frappe.db.exists("Has Role", {"role": ["in", list(FULL_ACCESS_ROLES)], "parent": user, "parenttype": "User"}))
+
+
+def permission_query_conditions(user=None, doctype=None):
+    """列表过滤：After Sales 普通用户仅返回 owner = 自己 的单据。
+
+    Frappe 16 调用形态：fn(user, doctype=...)。
+    """
+    user = user or frappe.session.user
+    if not user or user == "Administrator" or _has_full_access(user):
+        return ""
+    if not frappe.db.exists("Has Role", {"role": "After Sales", "parent": user, "parenttype": "User"}):
+        # 无售后角色的用户按 Frappe 默认权限走（不额外收紧）
+        return ""
+    return "`tabService Request`.`owner` = %(aftersales_user)s" % {"aftersales_user": frappe.db.escape(user)}
+
+
+def has_permission(doc=None, ptype="read", user=None, debug=False):
+    """单据级校验：与列表过滤同口径，双重保险。
+
+    Frappe 16 调用形态：fn(doc=doc, ptype=ptype, user=user, debug=debug)。
+    非 After Sales 角色直接放行给基础权限规则（DocPerm 决定）。
+    """
+    user = user or frappe.session.user
+    if not user or user == "Administrator" or _has_full_access(user):
+        return True
+    if not frappe.db.exists("Has Role", {"role": "After Sales", "parent": user, "parenttype": "User"}):
+        return True  # 基础 DocPerm 会另行裁决
+    return doc.owner == user

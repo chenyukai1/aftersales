@@ -117,6 +117,11 @@ def make_template(path):
 def import_spare_parts(path):
     """批量导入配件价格表（幂等）。返回 {created, updated, skipped, errors:[...]}。"""
     stats = {"created": 0, "updated": 0, "skipped": 0, "errors": []}
+    # 导入前预检：有阻断性问题直接中止，不写任何数据
+    _pre = precheck_import(path, "spare_parts")
+    stats["precheck"] = _pre
+    if not _pre["ok"]:
+        return {"error": "预检未通过：" + "；".join(_format_precheck(_pre)[:5]), **stats}
     try:
         wb = load_workbook(path, data_only=True)
     except Exception as e:
@@ -474,6 +479,11 @@ def _neq(current, candidate):
 def import_vehicle_delivery(path):
     """批量导入「整车发货+客户收货」（双 sheet，幂等）。返回统计 dict。"""
     stats = {"created": 0, "updated": 0, "skipped": 0, "customers_created": [], "errors": []}
+    # 导入前预检：有阻断性问题直接中止，不写任何数据
+    _pre = precheck_import(path, "vehicle_delivery")
+    stats["precheck"] = _pre
+    if not _pre["ok"]:
+        return {"error": "预检未通过：" + "；".join(_format_precheck(_pre)[:5]), **stats}
     try:
         wb = load_workbook(path, data_only=True)
     except Exception as e:
@@ -592,3 +602,169 @@ def import_vehicle_delivery(path):
                     stats["created"] += 1
     frappe.db.commit()
     return stats
+
+
+# ============================================================
+# 导入预检：不写任何数据，先出「校验报告」
+# ============================================================
+def _precheck_open(path):
+    try:
+        return load_workbook(path, data_only=True)
+    except Exception as e:
+        return {"__error__": f"无法打开 Excel：{e}"}
+
+
+def _precheck_rows(ws):
+    rows = list(ws.iter_rows(values_only=True))
+    headers = [str(h).strip().lower() if h is not None else "" for h in (rows[0] if rows else [])]
+    return rows[1:], headers
+
+
+def _precheck_map(headers, aliases):
+    col = {}
+    for field, alias_list in aliases.items():
+        lower = {a.lower() for a in alias_list}
+        for i, h in enumerate(headers):
+            if h in lower:
+                col[field] = i
+                break
+    return col
+
+
+def _precheck_cell(r, col, field):
+    i = col.get(field)
+    return "" if i is None or i >= len(r) or r[i] is None else str(r[i]).strip()
+
+
+def precheck_import(path, kind):
+    """导入前预检（只读）。返回 {ok, blockers, warnings, row_issues, info}。
+
+    - blockers：必须修复否则导入直接中止（缺关键列 / 关键字段为空）
+    - warnings：可导入但建议补全（缺供应商、客户未在收货 sheet 等）
+    - row_issues：按行列出的问题明细（最多前 50 条）
+    """
+    report = {"ok": True, "blockers": [], "warnings": [], "row_issues": [], "info": []}
+    wb = _precheck_open(path)
+    if isinstance(wb, dict):
+        report["ok"] = False
+        report["blockers"].append(wb["__error__"])
+        return report
+
+    def _issue(row_no, msg, blocker=False):
+        text = f"第 {row_no} 行：{msg}"
+        report["row_issues"].append(text)
+        (report["blockers"] if blocker else report["warnings"]).append(text)
+        report["ok"] = report["ok"] and not blocker
+
+    if kind == "spare_parts":
+        ws = wb["配件价格表"] if "配件价格表" in wb.sheetnames else wb.active
+        rows, headers = _precheck_rows(ws)
+        col = _precheck_map(headers, COL_ALIASES)
+        if "k3_code" not in col:
+            report["ok"] = False
+            report["blockers"].append(f"未找到 K3编码 列，表头：{headers}")
+            return report
+        if "part_name" not in col:
+            report["ok"] = False
+            report["blockers"].append(f"未找到 配件品名 列，表头：{headers}")
+            return report
+        seen, dup = {}, []
+        data_rows = 0
+        for n, r in enumerate(rows, start=2):
+            if not r or all(c is None or str(c).strip() == "" for c in r):
+                continue
+            data_rows += 1
+            k3 = _precheck_cell(r, col, "k3_code")
+            if not k3:
+                _issue(n, "K3编码为空，将跳过", blocker=True)
+                continue
+            if not _precheck_cell(r, col, "part_name"):
+                _issue(n, f"配件[{k3}] 品名为空，将跳过", blocker=True)
+                continue
+            if not _precheck_cell(r, col, "supplier"):
+                _issue(n, f"配件[{k3}] 供应商为空（影响索赔清单归属）")
+            if k3 in seen:
+                dup.append(k3)
+                _issue(n, f"配件[{k3}] 在文件内重复（首次出现于第 {seen[k3]} 行，按导入规则后者覆盖前者）")
+            seen[k3] = n
+        if data_rows == 0:
+            report["ok"] = False
+            report["blockers"].append("无有效数据行")
+        report["info"].append(f"共 {data_rows} 行数据，涉及 {len(seen)} 个配件编码")
+
+    elif kind == "vehicle_delivery":
+        sheets = wb.sheetnames
+        if "车辆发货" not in sheets and "客户收货" not in sheets:
+            report["ok"] = False
+            report["blockers"].append(f"Excel 需含「车辆发货」或「客户收货」sheet，实际：{sheets}")
+            return report
+        # 客户收货 sheet
+        cust_in_file = set()
+        if "客户收货" in sheets:
+            rows, headers = _precheck_rows(wb["客户收货"])
+            col = _precheck_map(headers, CUSTOMER_ALIASES)
+            if "customer" not in col:
+                report["warnings"].append("客户收货 sheet 未找到客户简称列，该 sheet 将整体跳过")
+            else:
+                cnt = 0
+                for n, r in enumerate(rows, start=2):
+                    if not r or all(c is None or str(c).strip() == "" for c in r):
+                        continue
+                    cust = _precheck_cell(r, col, "customer")
+                    if not cust:
+                        _issue(n, "客户简称为空，将跳过", blocker=True)
+                        continue
+                    cnt += 1
+                    cust_in_file.add(cust)
+                    if not _precheck_cell(r, col, "address"):
+                        _issue(n, f"客户[{cust}] 收货地址为空（无法自动带出收货信息）")
+                    if not _precheck_cell(r, col, "state"):
+                        _issue(n, f"客户[{cust}] 省份为空（发货区域将按地址关键词识别）")
+                report["info"].append(f"客户收货 sheet 共 {cnt} 行")
+
+        # 车辆发货 sheet
+        if "车辆发货" in sheets:
+            rows, headers = _precheck_rows(wb["车辆发货"])
+            col = _precheck_map(headers, VEHICLE_ALIASES)
+            for req in ("chassis_no", "serial_no", "customer"):
+                if req not in col:
+                    report["ok"] = False
+                    report["blockers"].append(f"车辆发货 sheet 缺关键列（{req}），表头：{headers}")
+                    return report
+            cnt = 0
+            for n, r in enumerate(rows, start=2):
+                if not r or all(c is None or str(c).strip() == "" for c in r):
+                    continue
+                cnt += 1
+                chassis = _precheck_cell(r, col, "chassis_no")
+                cust = _precheck_cell(r, col, "customer")
+                if not chassis:
+                    _issue(n, "车架号为空，将跳过", blocker=True)
+                    continue
+                if not cust:
+                    _issue(n, f"车辆[{chassis}] 购车客户为空", blocker=True)
+                    continue
+                if not _precheck_cell(r, col, "serial_no"):
+                    _issue(n, f"车辆[{chassis}] 序列号为空（铭牌搜索将不可用）", blocker=True)
+                if not _precheck_cell(r, col, "delivery_date"):
+                    _issue(n, f"车辆[{chassis}] 发货日期为空（旧件追回提醒将无法按发货日计算）")
+                if cust not in cust_in_file:
+                    _issue(n, f"车辆[{chassis}] 客户[{cust}] 不在客户收货 sheet，导入时将自动建档（无收货联系方式）")
+            report["info"].append(f"车辆发货 sheet 共 {cnt} 行")
+
+    else:
+        report["ok"] = False
+        report["blockers"].append(f"未知预检类型：{kind}")
+    return report
+
+
+def _format_precheck(report):
+    """把预检报告压成几行中文摘要，用于返回值/日志。"""
+    parts = []
+    parts += [f"⛔ {b}" for b in report["blockers"][:5]]
+    parts += [f"⚠️ {w}" for w in report["warnings"][:5]]
+    parts += report["info"]
+    extra = len(report["row_issues"]) - len(report["warnings"]) - len(report["blockers"])
+    if extra > 0:
+        parts.append(f"…另有 {extra} 条明细见 row_issues")
+    return parts

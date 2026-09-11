@@ -1,0 +1,112 @@
+# 售后平台生产环境编排（与 frappe_docker 官方 compose 同构的最小集合）。
+# 用法：
+#   1) 复制 .env.example 为 .env 并填写
+#   2) docker compose --project-name aftersales up -d
+#   3) 首次：docker compose --project-name aftersales exec backend \
+#        bench new-site <域名> --db-root-password=... --admin-password=... --install-app erpnext --install-app aftersales
+#   4) 后续升级：docker compose --project-name aftersales exec backend bench --site <域名> migrate
+
+x-customizable-image: &customizable-image aftersales-prod:latest
+x-db-config: &db-config
+  DB_HOST: db
+  DB_PORT: "3306"
+  REDIS_CACHE: redis-cache:6379
+  REDIS_QUEUE: redis-queue:6379
+  SOCKETIO_PORT: "9000"
+
+services:
+  backend:
+    image: *customizable-image
+    restart: unless-stopped
+    environment:
+      <<: *db-config
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+  frontend:
+    image: *customizable-image
+    restart: unless-stopped
+    command: nginx-entrypoint.sh
+    depends_on: [backend, websocket]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: $${FRAPPE_SITE_NAME_HEADER:-$$hostname}
+      UPSTREAM_REAL_IP_ADDRESS: $${UPSTREAM_REAL_IP_ADDRESS:-127.0.0.1}
+      UPSTREAM_REAL_IP_HEADER: $${UPSTREAM_REAL_IP_HEADER:-X-Forwarded-For}
+      UPSTREAM_REAL_IP_RECURSIVE: $${UPSTREAM_REAL_IP_RECURSIVE:-off}
+      PROXY_READ_TIMEOUT: $${PROXY_READ_TIMEOUT:-120}
+      CLIENT_MAX_BODY_SIZE: $${CLIENT_MAX_BODY_SIZE:-50m}
+    ports:
+      - "${HTTP_PORT:-80}:8080"
+      - "${HTTPS_PORT:-443}:8080"
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+  websocket:
+    image: *customizable-image
+    restart: unless-stopped
+    command: node /home/frappe/frappe-bench/apps/frappe/socketio.js
+    depends_on: [backend]
+    environment: *db-config
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+  scheduler:
+    image: *customizable-image
+    restart: unless-stopped
+    command: bench schedule
+    environment: *db-config
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+  queue-short:
+    image: *customizable-image
+    restart: unless-stopped
+    command: bench worker --queue short,default
+    environment: *db-config
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+  queue-long:
+    image: *customizable-image
+    restart: unless-stopped
+    command: bench worker --queue long,default,short
+    environment: *db-config
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+  db:
+    image: mariadb:10.6
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --skip-innodb-read-only-compressed
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?请设置数据库root密码}
+    volumes:
+      - db-data:/var/lib/mysql
+
+  redis-cache:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+
+  redis-queue:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-queue-data:/data
+
+volumes:
+  sites:
+  logs:
+  db-data:
+  redis-queue-data:

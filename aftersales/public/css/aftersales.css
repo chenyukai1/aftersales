@@ -1,0 +1,75 @@
+/* 售后平台全局增强：移动端适配（Frappe Desk 手机端优化）
+   原则：不覆盖桌面样式，仅在小屏收紧间距、放大触控目标、表格可横滚 */
+
+@media (max-width: 767px) {
+	/* 表单：区块与字段间距收紧，标题不被截断 */
+	.form-layout .form-section,
+	.form-layout .section-head {
+		padding-left: 8px;
+		padding-right: 8px;
+	}
+	.form-column {
+		padding-left: 4px !important;
+		padding-right: 4px !important;
+	}
+	.form-layout .form-page-indicator {
+		display: none;
+	}
+
+	/* 触控目标 >= 40px */
+	.form-layout .control-input input,
+	.form-layout .control-input select,
+	.form-layout .like-disabled-input,
+	.btn.btn-sm,
+	.link-btn {
+		min-height: 40px;
+	}
+	.form-layout .grid-body .btn-open,
+	.list-row .list-subject {
+		padding-top: 6px;
+		padding-bottom: 6px;
+	}
+
+	/* 子表格整体可横向滚动，避免挤压 */
+	.grid-field-container,
+	.grid-heading-row {
+		overflow-x: auto;
+	}
+	.grid-row .data-row {
+		min-width: 560px;
+	}
+
+	/* 列表页：次要列在小屏隐藏，主列可读 */
+	.list-row .list-header-subject,
+	.list-row .list-subject {
+		font-size: 14px;
+	}
+	.list-view-sidebar,
+	.sidebar-toggle-btn {
+		display: none;
+	}
+
+	/* 工作台卡片间距 */
+	.workspace .card {
+		margin-bottom: 8px;
+	}
+
+	/* 质量分析看板图表纵向堆叠 */
+	.qs-dashboard .col-sm-6 {
+		width: 100%;
+		float: none;
+	}
+	.qs-dashboard .qs-card .qs-chart {
+		min-height: 220px;
+	}
+	.qs-dashboard .qs-kpi .num {
+		font-size: 20px;
+	}
+}
+
+/* 打印模板在小屏预览优化 */
+@media (max-width: 767px) {
+	.print-format-glass {
+		padding: 8px;
+	}
+}

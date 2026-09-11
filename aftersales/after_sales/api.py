@@ -46,3 +46,73 @@ def get_part_info(key=None, k3_code=None):
         return _result("not_found", message=f'未找到 K3 编码为 "{key}" 的配件记录')
 
     return _result("success", data={"part": frappe.get_doc("Spare Part", name).as_dict()})
+
+# ============================================================
+# 报表 Excel 导出
+# ============================================================
+EXPORT_COLUMNS = [
+    ("name", "登记编号"),
+    ("feedback_date", "反馈日期"),
+    ("chassis_no", "车架号"),
+    ("vehicle_model", "车型"),
+    ("customer", "客户"),
+    ("contact_person", "对接人"),
+    ("service_type", "服务类型"),
+    ("after_sale_type", "售后类型"),
+    ("fault_description", "故障描述"),
+    ("handling_action", "索赔处理动作"),
+    ("workflow_state", "审批状态"),
+    ("customer_status", "客户状态"),
+    ("department_status", "部门状态"),
+    ("claim_month", "索赔月份"),
+    ("claim_week", "索赔周数"),
+]
+
+
+@frappe.whitelist()
+def export_service_requests():
+    """售后登记列表导出 Excel（按当前用户可见范围，xlsx 返回浏览器下载）。"""
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill
+
+    import frappe.utils
+
+    fields = [c[0] for c in EXPORT_COLUMNS if frappe.db.has_column("Service Request", c[0])]
+    rows = frappe.get_list(
+        "Service Request",
+        fields=["name"] + fields,
+        order_by="creation desc",
+        limit_page_length=0,
+    )
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "售后登记"
+    headers = ["登记编号"] + [c[1] for c in EXPORT_COLUMNS if c[0] in fields]
+    ws.append(headers)
+    fill = PatternFill("solid", fgColor="EDF2F9")
+    bold = Font(bold=True)
+    for cell in ws[1]:
+        cell.font = bold
+        cell.fill = fill
+    for r in rows:
+        ws.append([r.get("name")] + [r.get(f) for f in fields])
+    # 列宽自适应（截断上限 40）
+    for col_idx, h in enumerate(headers, 1):
+        width = max(
+            [len(str(h))]
+            + [len(str(ws.cell(row=i, column=col_idx).value or "")) for i in range(2, ws.max_row + 1)]
+        )
+        from openpyxl.utils import get_column_letter
+
+        ws.column_dimensions[get_column_letter(col_idx)].width = min(width + 2, 40)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    data = buf.getvalue()
+    frappe.response["filecontent"] = data
+    frappe.response["filedata"] = data
+    frappe.response["type"] = "binary"
+    frappe.response["filename"] = f"售后登记导出_{frappe.utils.today()}.xlsx"
+    frappe.response["doctype"] = None
+    return

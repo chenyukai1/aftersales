@@ -53,7 +53,8 @@ section("1. 售后登记 → 审批 → 自动联动")
 sr = frappe.get_doc(
     {
         "doctype": "Service Request",
-        "feedback_date": "2026-09-01",
+        # 用当天日期：批量隐患扫描按“近7天”过滤，写死日期会随时间漂移出窗口（2026-09-11 实测教训）
+        "feedback_date": frappe.utils.today(),
         "customer": "吉安吉翔/江西雷翼",
         "contact_person": "大程",
         "service_type": "特殊申请",
@@ -144,6 +145,15 @@ check("5.8 完整闭环", qc_doc.status == "完整闭环", qc_doc.status)
 
 # ========== 6. 批量隐患监控 ==========
 section("6. 批量隐患监控")
+# 数据保鲜：mock 历史单的 feedback_date 会随时间滑出 7 天扫描窗口，
+# 这里把含命中件的已提交单拉回窗口（仅测试环境数据保鲜，不影响业务逻辑）
+from frappe.utils import getdate, add_days
+
+since = str(add_days(getdate(frappe.utils.today()), -7))
+hit_parents = frappe.get_all("Service Part Item", filters={"new_part_code": "31101130"}, pluck="parent")
+for pname in hit_parents:
+    if frappe.db.get_value("Service Request", pname, "docstatus") == 1:
+        frappe.db.set_value("Service Request", pname, "feedback_date", frappe.utils.today(), update_modified=False)
 bscan = frappe.get_attr("aftersales.after_sales.batch_issue_monitor.scan_batch_issues")()
 check("6.1 扫描运行", isinstance(bscan, dict))
 check("6.2 命中31101130", any(g["part_code"] == "31101130" and g["count"] >= 3 for g in bscan["groups"]), str([(g["part_code"], g["count"]) for g in bscan["groups"]]))
